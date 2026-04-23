@@ -1,9 +1,11 @@
  * The package and report folders are for input and output files and should never be committed to version control.
  */
 /package/*.*
-/report/**/*.*
+/package/**/*.*
 /report/*.*
 /report/**/*.*
-
-
+# But always keep .gitkeep files to ensure the folders are tracked by git
 !/**/.gitkeep
+
+# Ignore MacOS system files
+.DS_Store

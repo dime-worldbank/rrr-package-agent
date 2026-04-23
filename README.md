@@ -1,6 +1,6 @@
 # Reproducibility Package Reviewer Agent
 
-This open-source agent skill package follows the standard described here: <https://agentskills.io/home>.
+This open-source agent skill package follows the standard described here: <https://agentskills.io>.
 
 ## Where to run this agent?
 
