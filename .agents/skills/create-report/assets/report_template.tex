@@ -1,0 +1,151 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PRWP Reproducibility Verification Report Template
+% Rename this file: verification_report_[PACKAGE_ID].tex
+% Compile with pdflatex or upload to Overleaf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{tufte-handout}
+
+\geometry{
+  left=1in,
+  right=1in,
+  textwidth=35pc,
+}
+
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{booktabs}
+\usepackage{units}
+\usepackage{upquote}
+\usepackage{fancyvrb}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
+\graphicspath{{graphics/}}
+
+\fvset{fontsize=\normalsize}
+\renewcommand{\FancyVerbFormatLine}{\color{violet}}
+\DefineShortVerb{\|}
+
+\makeatletter
+\renewcommand{\maketitle}{
+  \vspace*{-1.8cm}
+    \centering
+  \includegraphics[width=.7\linewidth]{RRR Logo.png}\\
+    \vspace*{.2cm}
+  \textit{{\LARGE \@title}} \\
+    \vspace*{.2cm}
+  \textit{{\Large \@author}} \\
+  \textit{{\Large \@date}}
+}
+\makeatother
+
+\makeatletter
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\hspace*{-6em}\makebox[30pc]{\footnotesize \parbox[t]{\widthof{\makebox[31pc]{}} - 2em}{\MakeUppercase{\@title}} \hspace{1em}\thepage}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\makeatother
+
+% ── FILL THESE IN ────────────────────────────────────────────────────
+\title{%%PAPER_TITLE%%}
+\author{First Submission: %%PACKAGE_ID%% \\ %%REVIEWER_NAME%% \\ reproducibility@worldbank.org}
+\date{%%DATE%%}
+% ─────────────────────────────────────────────────────────────────────
+
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+\maketitle
+\end{center}
+
+This review verifies the reproducibility of the exhibits included in the paper \textit{``%%PAPER_TITLE%%''}.
+
+\bigskip\noindent \textbf{Contents in this review}:
+\begin{enumerate}
+    \item \nameref{main-findings}
+    \item \nameref{output-list}
+    \item \nameref{reproduction-environment}
+\end{enumerate}
+
+\section{Main findings}
+\label{main-findings}
+
+%%OVERALL_STATUS_LINE%%
+
+\begin{itemize}
+
+    \item The code was successfully executed on a new computer after:
+    \begin{enumerate}
+        %%RUN_STEPS%%
+    \end{enumerate}
+
+    \item The output demonstrates consistent stability across multiple runs.
+    Specifically, executing the code %%STABILITY_RUNS%% times consecutively yielded identical results.
+
+    \item The code takes approximately %%RUNTIME%% to run.
+
+    \item We conducted our reproducibility analysis based on the %%MANUSCRIPT_VERSION%%.
+
+    \item \textbf{Verification Process and Data Handling}:
+    \begin{itemize}
+        %%DATA_HANDLING%%
+    \end{itemize}
+
+    \item \textbf{Reproducibility Summary}:
+    \begin{itemize}
+        \item \textbf{Data}: %%DATA_STATEMENT%%
+        \item \textbf{Code}: %%CODE_STATEMENT%%
+        \item \textbf{Outputs}: %%OUTPUTS_STATEMENT%%
+        \item \textbf{Dependencies environment}: %%ENV_STATEMENT%%
+    \end{itemize}
+
+\end{itemize}
+
+
+\section{List of exhibits and reproducibility status}
+\label{output-list}
+
+% Color key:
+% \textcolor{OliveGreen}{Reproduced}
+% \textcolor{LimeGreen}{Results reproduced, but table/figure includes manual changes}
+% \textcolor{Gray}{Does not apply}
+% \textcolor{Goldenrod}{All values reproduced}
+% \textcolor{BurntOrange}{Could not be verified: EXPLAIN WHY}
+% \textcolor{Red}{Does not reproduce: EXPLAIN DIFFERENCES}
+
+\noindent\textbf{Results in the Main Section of the Paper}
+
+\begin{itemize}
+%%MAIN_EXHIBITS%%
+\end{itemize}
+
+\bigskip
+
+\noindent\textbf{Results in the Annex}
+
+%%APPENDIX_NOTE%%
+
+\begin{itemize}
+%%APPENDIX_EXHIBITS%%
+\end{itemize}
+
+
+\section{Reproduction Environment}
+\label{reproduction-environment}
+
+Paper exhibits were reproduced on a computer with the following specifications:
+
+\begin{itemize}
+    \item OS: %%OS%%
+    \item Processor: %%PROCESSOR%%
+    \item Memory available: %%MEMORY%%
+    \item Software version: %%SOFTWARE%%
+\end{itemize}
+
+\end{document}
