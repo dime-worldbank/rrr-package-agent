@@ -1,0 +1,9 @@
+ * The package and report folders are for input and output files and should never be committed to version control.
+ */
+/package/*.*
+/report/**/*.*
+/report/*.*
+/report/**/*.*
+
+
+!/**/.gitkeep
