@@ -1,10 +1,10 @@
-# Reproducibility Package Reviewerr Agen
+# Reproducibility Package Reviewer Agent
 
-This open open agent skill package follows the standard described here: <https://agentskills.io/home>.
+This open-source agent skill package follows the standard described here: <https://agentskills.io/home>.
 
 ## Where to run this agent?
 
-This open source agent skill package can be run in any environment that supports AI agents. The default environment described in this README is through VS Code Extensions such as Github Copilot or Claude Code.
+This open-source agent skill package can be run in any environment that supports AI agents. The default environment described in this README is VS Code extensions such as GitHub Copilot or Claude Code.
 
 For instructions in other environments, see: TODO
 
@@ -26,7 +26,7 @@ git clone https://github.com/dime-worldbank/rrr-package-agent.git
 cd rrr-package-agent
 ```
 
-### Add package to review
+### Add a package to review
 
 Add the package you want to review to the `./package/` folder. This is the only folder you need to modify.
 
