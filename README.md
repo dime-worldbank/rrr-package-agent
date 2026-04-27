@@ -31,6 +31,3 @@ cd rrr-package-agent
 Add the package you want to review to the `./package/` folder. This is the only folder you need to modify.
 
 ### Run the workflow
-
-Run the slash command `/review-completeness` in your agent's chat interface. Review the output in the chat interface to see the results of the review. You can also see this output in the `./report/` folder.
-
