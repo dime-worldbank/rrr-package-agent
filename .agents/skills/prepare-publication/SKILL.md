@@ -55,6 +55,7 @@ The README **must** be in PDF format in the final package.
   - **Online**: paste into a Markdown-to-PDF converter
 - If the README is a Word doc (`.docx`): save/export as PDF, name it `README.pdf`
 - Remove any non-PDF versions of the README from the package root (keep only `README.pdf`)
+- If the README is inside a subfolder of the package (e.g. `reproducibility_package/`), copy it to the top level, rename it to `README.pdf`, and **delete the original from the subfolder**. The README must exist only at the top level of the package folder.
 
 ---
 
@@ -83,9 +84,36 @@ https://github.com/worldbank/wb-reproducible-research-repository/tree/main/resou
 or code). If the package has both public and private data, hash all data that
 was used for verification, even if restricted data won't be in the public package.
 
+After data is hashed we will need to delete files that are restricted, limited access or forthcoming in the Microdata Library, so we want to have the hashes of all data files before we delete any. Delete files, let the user know what was deleted, and ask them to confirm everything was deleted before proceeding.
+
 ---
 
-## Step 4 — Verify the README covers these fields
+## Step 4 — Clean up system and version-control files
+
+Before zipping, remove all files that should never be in the final package:
+
+**Delete all `.DS_Store` files (macOS system files):**
+```bash
+find "[PACKAGE_DIR]" -name ".DS_Store" -delete
+```
+
+**Delete the `.git` folder and all git config files:**
+```bash
+rm -rf "[PACKAGE_DIR]/reproducibility_package/.git"
+rm -f "[PACKAGE_DIR]/reproducibility_package/.gitattributes"
+rm -f "[PACKAGE_DIR]/reproducibility_package/.gitignore"
+```
+
+Verify nothing remains:
+```bash
+find "[PACKAGE_DIR]" -name ".DS_Store" -o -name ".git" -o -name ".gitattributes" -o -name ".gitignore"
+```
+The command should return no output.
+
+---
+
+## Step 5 — Verify the README covers these fields
+
 
 Before zipping, do a final README check:
 
@@ -99,7 +127,7 @@ Before zipping, do a final README check:
 
 ---
 
-## Step 5 — Assemble the ZIP
+## Step 6 — Assemble the ZIP
 
 The final ZIP must have this exact structure:
 
@@ -107,6 +135,7 @@ The final ZIP must have this exact structure:
 [PACKAGE_ID].zip
 ├── README.pdf
 ├── LICENSE.txt
+├── WB-IGO-RIDER.txt
 ├── reproducibility_report_[PACKAGE_ID].pdf
 ├── data_hash_report.csv
 ├── comparison_report.csv          ← ONLY if package has accessible or limited-access data
@@ -140,80 +169,11 @@ The final ZIP must have this exact structure:
 - On Linux/terminal: `zip -r [PACKAGE_ID].zip README.pdf LICENSE.txt reproducibility_report_[PACKAGE_ID].pdf data_hash_report.csv "Reproducibility package/"`
 - Name the ZIP exactly: `[PACKAGE_ID].zip` (e.g. `RR_KEN_2026_585.zip`)
 
----
-
-## Step 6 — Metadata Checklist
-
-Before publishing, verify these fields in the Metadata Editor:
-
-### Auto-filled fields (verify and correct):
-- [ ] **Primary ID**: matches package folder name exactly (e.g. `RR_KEN_2026_585`)
-- [ ] **Title**: "Reproducibility package for [Paper Title]"
-- [ ] **Authors**: all have name, affiliation, and email
-- [ ] **Abstract**: no formatting issues; matches paper abstract
-- [ ] **Geographic area**: correct ISO-3 code(s) — use `WLD` for multi-country, or
-  region codes `LAC`, `MNA`, `SSA`, `AFR` for regional papers
-- [ ] **Software**: version number added (e.g. "Stata 18.0 MP")
-- [ ] **Scripts**: ZIP file name matches package ID; notes include
-  "Computational reproducibility verified by the Development Impact Analytics Team, World Bank."
-- [ ] **License**: Modified BSD3 with URL https://opensource.org/license/bsd-3-clause/
-
-### Manual fields — Data Section:
-For each dataset, fill in:
-- **Dataset name**
-- **Access policy** — choose the most restrictive that applies:
-  - Open data (included in package)
-  - Open data (not included — file size)
-  - Accessible (public but no redistribution)
-  - Limited-access (requires purchase/approval)
-  - Forthcoming in Microdata Library
-  - Restricted — no documented access
-  - Restricted — custom license, authors only
-- **Date accessed** (YYYY-MM)
-- **URL** (if publicly available)
-- **Notes**: source citation, file location in package, key indicators
-
-**Overall Data Availability Statement** — choose the most restrictive:
-- `All data sources are publicly available and included in the reproducibility package.`
-- `All data sources are publicly available but not all are included in the reproducibility package.`
-- `Some data is restricted and has not been included in the reproducibility package.`
-- `All data is restricted and has not been included in the reproducibility package.`
-- `Some/All data is forthcoming in the World Bank Microdata Library.`
-
-### Manual fields — Reproducibility Section:
-- **Reproduction Instructions**: paste the "How to run" section from the README
-  (or Main Findings section from the report), adapted for an external user
-- **Technology Requirements**: `~[X] minutes run time`
-- **Technology Environment**:
-  ```
-  OS: [OS]
-  Processor: [Processor]
-  Memory: [Memory GB]
-  Software: [Software + version]
-  ```
-
-### External Resources to upload:
-- `README.pdf` — Resource type: Document, Other
-- `reproducibility_report_[PACKAGE_ID].pdf` — Resource type: Document, Other
-- `[PACKAGE_ID].zip` — Resource type: Program/script
-
-### Tags to verify:
-- **DOI**: add after publication
-- **Data Access**: Open data / Accessible data / Limited-access data / Restricted data
-- **Code Access**: Open code / Restricted code / No code
 
 ---
+## Step 7 — Send Final Email to Authors
 
-## Step 7 — Publish
-
-1. Draft catalog entry on QA
-2. Send QA link to reproducibility initiative TTL for review
-3. Once approved, publish to PROD
-4. Note: publishing to PROD deletes the DOI — add it back manually via the admin portal
-
----
-
-## Step 8 — Send Final Email to Authors
+Write an email to the authors with the following template, customizing as needed. Attach the reproducibility verification report and include the link to the package in the Reproducible Research Repository. 
 
 ```
 Dear [Author Name],
@@ -246,25 +206,3 @@ reproducibility@worldbank.org
 
 ---
 
-## Step 9 — Update GitHub Dashboard
-
-After publishing:
-- [ ] Update issue status to `Published with missings` or `Done`
-  - `Published with missings`: thumbnail pending, paper DOI/URL/PRWP number not yet available
-    → add label `Pending in RRR: thumbnail` and/or `Pending in RRR: data`
-  - `Done`: package is fully finalized
-- [ ] Add total time spent on the review (include all team members' time)
-- [ ] Add total number of submissions this review took
-- [ ] Close the GitHub issue with a summary comment
-
----
-
-## Done!
-
-The package is published. The review is complete. ✅
-
-**Post-publication reminders** (do these when the paper is published):
-- Replace thumbnail with screenshot of the published paper
-- Add publication number to Description field (e.g. "Policy Research Working Paper No. 11165")
-- Add published paper URL and DOI
-- If data was forthcoming: verify it matches the version used in review, then update URL/notes
