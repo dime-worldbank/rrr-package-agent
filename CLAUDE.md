@@ -14,9 +14,8 @@ rrr-package-agent/
 │   ├── create-report/
 │   └── prepare-publication/
 ├── package/                         ← submitted reproducibility packages
-│   └── RR_WLD_2025_XX/              ← one folder per review
 ├── report/                          ← outputs you produce during review
-│   └── completeness_RR_WLD_2025_XX/              ← completeness report, author emails, run log
+├── config.yaml                      ← configuration file with variables set by reviewer
 └── .gitignore
 ```
 
@@ -30,19 +29,13 @@ rrr-package-agent/
 | 4 — Prepare Publication | `prepare-publication/` | "prepare the package", "step 4" |
 
 When a skill is triggered, read the full `SKILL.md` from the relevant folder before responding.
-You have direct filesystem access — read the package files in `package/RR_WLD_2025_XX/`
+You have direct filesystem access — read the package files in `package/<package-name>/`
 directly rather than asking the reviewer to describe them.
 
 ## Starting a new review
 
-When a reviewer mentions a new submission, ask for:
-1. Package ID (e.g. `RR_WLD_2025_XX`)
-2. Paper title
-3. Software used (Stata / R / Python)
-4. Reviewer name
-
-Then begin Skill 1. Read the files in `package/RR_WLD_2025_XX/` directly.
-Save all outputs to `report/RR_WLD_2025_XX/`.
+Then begin Skill 1. Read the files in `package/<package-name>/` directly.
+Save all outputs to `report/<package-name>/`.
 
 ## Key rules
 
