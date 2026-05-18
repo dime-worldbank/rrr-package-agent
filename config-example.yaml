@@ -1,4 +1,4 @@
 # rename this file to config.yaml and fill in the values
 reviewer-name: <Your Name Here>
-processor: 
-memory: 
+processor: <Your Computers Processor Here>
+memory: <Your Computers Memory Here>

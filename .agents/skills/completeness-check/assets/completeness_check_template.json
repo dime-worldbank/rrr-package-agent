@@ -1,0 +1,33 @@
+{
+    "readme": {
+        "missing": "<true or false depending on whether a readme file is present in the package>",
+        "path": "<path relative to `package/<package-id>/` to readme file in the package  - if applicable or 'N/A'>"
+    },
+    "manuscript": {
+        "missing": "<true or false depending on whether the manuscript is included in the package>",
+        "title": "<Title of the manuscript as specified in the readme or manuscript file - if applicable or 'N/A'>",
+        "link": "<URL to manuscript - if applicable or 'N/A'>",
+        "path": "<path relative to `package/<package-id>/` to manuscript file in the package - if applicable or 'N/A'>"
+    },
+    "software": {
+        "missing": "<true or false depending on whether the software information is present in the readme>",
+        "version": "<version of software used to run the code, e.g. Stata 18.0 MP, R 4.3.1, Python 3.11 - if applicable or 'N/A'>"
+    },
+    "code": {
+        "run_instructions": {
+            "missing": "<true or false depending on whether information on how to run the code is present in the readme>",
+            "main_script": "<path relative to `package/<package-id>/` to the main script that runs all other scripts - if applicable or 'N/A'>",
+            "details": "<description of how to run the code as specified in the readme - if applicable or 'N/A'>"
+        },
+        "root_directory": {
+            "missing": "<true or false depending on whether the readme specifies which line in the main script to change for a new machine>",
+            "details": "<description of which line in the main script to change for a new machine as specified in the readme - if applicable or 'N/A'>"
+        },
+        "code_file_completeness": {
+            "complete": "<Describe whether the names of the code files suggests that all code files from raw data to all output are included in the package - give examples on what seems to be missing>",
+            "redundant": "<Describe whether the names of the code files suggests that there are unnecessary code files (e.g., exploratory scripts, old versions) included in the package - give examples on what seems to be unnecessary>"
+        }
+    },
+    "data" : [],
+    "output" : {}
+}

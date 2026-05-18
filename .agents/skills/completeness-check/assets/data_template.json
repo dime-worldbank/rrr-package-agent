@@ -1,0 +1,13 @@
+{
+    "name": "<Name of the dataset as specified in the readme - if applicable or 'N/A'>",
+    "readme_data_path": "<path mentioned in the readme file where to where in the package the dataset is located - if applicable or 'N/A'>",
+    "package_data_path": [
+        "<path relative to `package/<package-id>/` to the dataset file in the package - if applicable or 'N/A'. It is possible that several files match this dataset. For eample if data are disaggregates on country, year, etc. In that case list them all. Make a list even if just one file corresponds to the dataset.>"
+    ],
+    "data_availibility_statement": {
+        "date_accessed": "<true or false depending on whether the readme specifies which line in the main script to change for a new machine>",
+        "url": "<URL to where the dataset can be accessed - if applicable or 'N/A'>",
+        "access_instructions": "<description of how to access the dataset as specified in the readme - if applicable or 'N/A'>",
+        "rights_statement": "<description of any rights statement related to the dataset as specified in the readme - if applicable or 'N/A'>"
+    }
+}

@@ -189,6 +189,21 @@ If all appendix exhibits were reviewed: `All appendix exhibits were reviewed.`
 
 ---
 
+## Formatting
+
+### Exhibit status colors (LaTeX)
+
+```latex
+\textcolor{OliveGreen}{Reproduced.}
+\textcolor{LimeGreen}{Reproduced (manual changes).}
+\textcolor{Goldenrod}{All values reproduced.}
+\textcolor{BurntOrange}{Could not be verified. [EXPLAIN]}
+\textcolor{Red}{Does not reproduce. [EXPLAIN DIFFERENCES]}
+\textcolor{Gray}{Does not apply.}
+```
+
+---
+
 ## Generate the report
 
 Once you have all the information above, do the following:

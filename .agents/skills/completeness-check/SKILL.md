@@ -1,71 +1,66 @@
 ---
 name: completeness-check
 description: >
-  Run this skill at the START of every PRWP reproducibility review — step 1 of the
-  workflow. Triggers whenever a reviewer says "check the package", "verify completeness",
-  "step 1", "start the review", "is the package complete", or receives a new submission.
-  Walks through the full completeness checklist: manuscript, README, data availability
-  statement, raw vs processed data, and flags any Bank-produced datasets that need
-  Microdata Library archiving. Outputs a structured checklist report and a ready-to-send
-  author email if items are missing.
+  This skill verifies the completeness of a reproducibility package and its documentation as submitted by authors to the reproducibility verification team. Run this skill whenever a reviewer says "check the package", "verify completeness", "is the package complete".
 ---
 
-# Skill 1 — Completeness Check
-
-## What this skill does
-Guides you through the Step 2a/2b completeness and data access verification for a
-reproducibility package. Produces:
+## Expected outputs of this skill
 1. A filled checklist with pass/fail for each item
 2. A flagged list of issues (missing elements, data concerns)
 3. A draft author email if anything is missing
 
+Folder paths without `./`, such as `report/` and `package/` are relative to the root of this repository. Files with `./` are relative to the skill folder with this SKILL.md file.
+
 ---
 
-## How to use this skill
+## Step 0 — Setup
 
-Ask the reviewer to share the package location (local path, SharePoint link, or
-describe what they can see). Then work through each section below in order.
+Then start by copying the file `./assets/completeness_template.json` into the `report/` folder renaming it to `completeness_check_<package-id>.json`. This will be your working file for this skill.
+
+Start by finding the package readme in the `package/<package-id>/` folder. If you find multiple README files in the package folder, choose the one that appears most complete or relevant by inspecting its content or by selecting the one closest to the package root `package/<package-id>/`.
+
+After finding the readme, update the `readme` section in the `report/completeness_check_<package-id>.json` file.
 
 ---
 
 ## Section A — Core Package Components
 
-Check each item. Mark ✅ PRESENT or ❌ MISSING.
+### Step 1. Manuscript
+- Is a manuscript (PDF or Word doc) included in the package, OR is there a link to the published paper in the readme?
 
-### A1. Manuscript
-- Is a manuscript (PDF or Word doc) included, OR is there a link to the published paper?
-- **Why it matters**: Without the manuscript, you cannot compare code outputs to paper exhibits.
-- **If missing**: Flag for author email — this is a hard blocker.
-
-### A2. README file
-Check the README covers ALL of the following. Each sub-item can be ✅ or ❌:
-
-- [ ] **Software and version** (e.g., "Stata 18.0 MP", "R 4.3.1", "Python 3.11"); not a blocker since replicator will run it in their own environment, but important for troubleshooting
-- [ ] **How to run** — which file to execute first, order of scripts if no main file
-- [ ] **Top-level directory line** — which line in the main script to change for a new machine, not a blocker but helpful for replicators, not needed to communicate to authors if there is a main script. 
-- [ ] **Output mapping** — table/figure → script that generates it (or reference to a linkage table)
-- [ ] **Data Availability Statement** (can be in README or separate file) — see Section B
-
-A README with none of these AND no data info → **return to authors immediately**.
-A README missing some items → note issues, proceed with review, include in author email.
-
-### A3. Code
-- [ ] Code files that go from raw data all the way to paper exhibits
-- [ ] A main script (one-button run) — OR — README specifies exact execution order
-- [ ] No unnecessary code (e.g., exploratory scripts, old versions) — note but don't block
-
-### A4. Data
-- [ ] Raw data files are present (for verification purposes)
-- [ ] Data looks **unprocessed** — see Section C for how to assess this
-- [ ] If data is restricted/private: README explains how to access it
-
-### A5. Outputs
-- [ ] Raw outputs (tables as .txt/.csv/.tex, figures as .png/.pdf) are present
-- [ ] If outputs are missing: note it, but don't block the review
+Update the `manuscript` section in the `report/completeness_check_<package-id>.json` with this information.
 
 ---
 
-## Section B — Data Availability Statement
+### Step 2. README file
+
+- **Software and version** (e.g., "Stata 18.0 MP", "R 4.3.1", "Python 3.11"); not a blocker since replicator will run it in their own environment, but important for troubleshooting
+
+Update the `software` section in the `report/completeness_check_<package-id>.json` with this information.
+
+---
+
+### Step 3. Code
+- **How to run** — instructions on how to run the code. For example a one-button run main script that runs all other scriots, or a detailed description of what order the code files in the folder. The main script is not the final script, but a script that allows the full package to be run by running a single file.
+- **Root directory** — which line in the main script to change for a new machine
+- **Relevant code files** - by just looking at the names of the code files, to your best ability, determine whether::
+  - All code files that go from raw data all the way to paper exhibits seems to be included
+  - No obviously unnecessary code (e.g., exploratory scripts, old versions) are included. This is a judgment call, but if there are many code files and it's not clear which ones are relevant, note this as a potential issue.
+
+Update the `code` section in the `report/completeness_check_<package-id>.json` with this information.
+
+---
+
+## Step 4 - Data Documentation
+
+### Data Availability Statement
+
+Start by looking for a data availability statement in the README. For each input data mentioined in the README, copy the `./assets/data_template.json` file into the `data` list section of the `report/completeness_check_<package-id>.json` file. And then fill it out accodingly:
+
+- [ ] **Data Availability Statement** (can be in README or separate file) — see Section B
+- [ ] Raw data files are present in package
+- [ ] Data looks **unprocessed** — see Section C for how to assess this
+- [ ] If data is restricted/private: README explains how to access it
 
 The Data Availability Statement (DAS) can be in the README or a separate file.
 Check each dataset mentioned:
@@ -126,11 +121,18 @@ Flag it clearly:
 > concurrent with publication of the reproducibility package. Note this in the
 > GitHub issue and include in the author communication.
 
+--- 
+
+## Step 5 - Outputs
+- [ ] **Output mapping** — table/figure → script that generates it (or reference to a linkage table)
+- [ ] Raw outputs (tables as .txt/.csv/.tex, figures as .png/.pdf) are present
+- [ ] If outputs are missing: note it, but don't block the review
+
 ---
 
 ## Section E — Generate Checklist Report
 
-After working through Sections A–D, produce a structured report in this format:
+After working through Sections A–D, use the `report/completeness_check_<package-id>.json` file to generate a structured report. To indicate present or missing, use ✅ PRESENT or ❌ MISSING.
 
 ```
 COMPLETENESS CHECK — [PACKAGE ID]
@@ -164,70 +166,22 @@ NOTES FOR GITHUB ISSUE
   [paste any notes here]
 ```
 
+A README with none of these AND no data info → **return to authors immediately**.
+A README missing some items → note issues, proceed with review, include in author email
+
 ---
 
 ## Section F — Author Email (if items are missing)
 
-If anything is missing, draft an email using the relevant boilerplate below.
-Mix and match sections as needed.
-
-**Opening:**
-```
-Dear [Author Name],
-
-Thank you for submitting your reproducibility package for "[Paper Title]."
-Upon initial review, we found some items that need to be addressed before
-we can proceed with verification.
-```
-
-**For missing README / data statement:**
-```
-The current package lacks a complete data availability statement. For each
-dataset, please provide: (1) dataset name, (2) date accessed, (3) URL if
-publicly available, or step-by-step access instructions if restricted,
-and (4) a statement confirming you had legitimate access to all data.
-See [this example README](https://reproducibility.worldbank.org/index.php/catalog/98)
-for reference.
-```
-
-**For missing manuscript:**
-```
-Please include the final manuscript that will be used for publication —
-this is the version we compare exhibits against during verification.
-```
-
-**For missing raw data / processed data flag:**
-```
-We noticed that [filename] may be a processed dataset rather than the
-original raw data. Complete reproducibility requires starting from
-undprocessed data. Could you confirm whether raw source data and the
-construction code are available?
-```
-
-**For Microdata Library:**
-```
-The dataset [filename] appears to be original data collected by your team.
-Per World Bank policy, this dataset should be archived in the Microdata
-Library (https://microdata.worldbank.org/). We have copied this message
-to microdata@worldbank.org for coordination.
-```
-
-**Closing:**
-```
-You can update directly the folder shared with us, and let us know once these items have been
-addressed. Feel free to reach out with any questions.
-
-Best regards,
-[Your Name]
-PRWP Reproducibility Verification Team
-reproducibility@worldbank.org
-```
+If anything is missing, draft an email using the template in `assets/author_email_draft_template.md`. First, copy this file into the `root/report/` folder and then read the <Instructions> in the template and customize the email based on the specific issues you found. Do not attempt to send the email. Confirm this by returning a file path to the draft email to the user.
 
 ---
 
-## Done with Skill 1?
+## Final checklist
 
-Once the checklist is complete and any author emails are drafted:
-- Paste the checklist report into the **GitHub issue**
-- If proceeding: move to **Skill 2 — Run Package**
-- If returning to authors: update GitHub issue status and wait for resubmission
+Before concluding, ensure you have:
+- Created a report in the `report/` folder summarizing your findings
+- Created a draft author email if there are any missing items or concerns
+
+
+

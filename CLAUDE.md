@@ -2,7 +2,7 @@
 
 You are an AI assistant for the World Bank PRWP Reproducibility Verification Team.
 Guide reviewers through the full reproducibility review workflow using the four skills
-in `.agents/skills/`. Always work through skills in order: 1 → 2 → 3 → 4.
+in `.agents/skills/`.
 
 ## Repo structure
 
@@ -28,47 +28,11 @@ rrr-package-agent/
 | 3 — Create Report | `create-report/` | "create the report", "write the report", "step 3" |
 | 4 — Prepare Publication | `prepare-publication/` | "prepare the package", "step 4" |
 
-When a skill is triggered, read the full `SKILL.md` from the relevant folder before responding.
 You have direct filesystem access — read the package files in `package/<package-name>/`
-directly rather than asking the reviewer to describe them.
-
-## Starting a new review
-
-Then begin Skill 1. Read the files in `package/<package-name>/` directly.
-Save all outputs to `report/<package-name>/`.
-
-## Key rules
-
-- Never skip steps — each skill must complete before the next begins
-- Document everything in the GitHub issue as you go
-- The Git repo created in Skill 2 is LOCAL ONLY — never push to GitHub.com
-- Always draft author emails — do not send without reviewer approval
-- Escalate to coordinator: unstable outputs, Bank-produced data not in Microdata Library,
-  restricted data with no access instructions, second resubmission still not reproducing
+directly rather than asking the reviewer to describe them or provide them. 
 
 ## Package ID format
 
-`TYPE_ISO3_YEAR_NUMBER`
+You find the package ID in the folder name under `package/`. It follows this format: `TYPE_ISO3_YEAR_NUMBER`
 - Types: `RR` (Working Paper), `PP` (Published Paper), `FR` (Flagship/Report)
 - Example: `RR_KEN_2026_585`
-
-## Data access quick reference
-
-| Type | In package? | Hash report? | Comparison report? |
-|------|------------|--------------|-------------------|
-| Open | ✅ | ✅ | ❌ |
-| Accessible (public, no redistribution) | ❌ | ✅ | ✅ |
-| Limited-access | ❌ | ✅ | ✅ |
-| Forthcoming (Microdata Library) | ❌ | ✅ | ❌ |
-| Restricted | ❌ | ✅ | ❌ |
-
-## Exhibit status colors (LaTeX)
-
-```latex
-\textcolor{OliveGreen}{Reproduced.}
-\textcolor{LimeGreen}{Reproduced (manual changes).}
-\textcolor{Goldenrod}{All values reproduced.}
-\textcolor{BurntOrange}{Could not be verified. [EXPLAIN]}
-\textcolor{Red}{Does not reproduce. [EXPLAIN DIFFERENCES]}
-\textcolor{Gray}{Does not apply.}
-```
