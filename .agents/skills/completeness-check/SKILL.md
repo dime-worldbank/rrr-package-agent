@@ -15,7 +15,7 @@ Folder paths without `./`, such as `report/` and `package/` are relative to the 
 
 ## Step 0 — Setup
 
-Then start by copying the file `./assets/completeness_template.json` into the `report/` folder renaming it to `completeness_check_<package-id>.json`. This will be your working file for this skill.
+Then start by copying the file `./assets/completeness_check_template.json` into the `report/` folder renaming it to `completeness_check_<package-id>.json`. This will be your working file for this skill.
 
 Start by finding the package readme in the `package/<package-id>/` folder. If you find multiple README files in the package folder, choose the one that appears most complete or relevant by inspecting its content or by selecting the one closest to the package root `package/<package-id>/`.
 
