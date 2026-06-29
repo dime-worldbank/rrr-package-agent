@@ -106,7 +106,9 @@ This is a judgment call. Use these signals:
 
 ---
 
-## Section D — Bank-Produced Data → Microdata Library Flag
+## Section D — Data Archiving and Access Documentation
+
+### D1 — Bank-Produced Data → Microdata Library Flag
 
 Scan the README and data folder for datasets that appear to be **produced by the
 World Bank team** (survey data, administrative data collected by the project,
@@ -125,6 +127,52 @@ Flag it clearly:
 > [World Bank Microdata Library](https://microdata.worldbank.org/) before or
 > concurrent with publication of the reproducibility package. Note this in the
 > GitHub issue and include in the author communication.
+
+### D2 — Third-Party Private Data Shared via Personal Channels
+
+Check whether any **restricted or limited-access datasets** were provided by a third
+party (e.g., a World Bank country economist, a national statistical office, a project
+partner) rather than downloaded from a public or official repository.
+
+**Signals this applies:**
+- README says "data was shared by the Poverty Economist of [Country]"
+- Data comes from a personal OneDrive, Dropbox, or similar personal share
+- Access instructions say "contact [person]" with no institutional URL or catalog entry
+- Data owners are not the paper authors
+
+**Why this matters:** Vague "contact the Poverty Economist" instructions are not
+reproducible access instructions. A future replicator has no way to identify who
+that person is, whether they are still at the Bank, or how to request the data
+formally. Per World Bank data policy, data used in World Bank projects should be
+archived in an official repository so that access is institutional, not personal.
+
+**Recommended two-step approach:**
+
+**Step 1 (ideal) — Encourage archiving:**
+Recommend that the authors work with the data owners to archive the dataset in the
+appropriate World Bank repository:
+- Household surveys and microdata → [World Bank Microdata Library](https://microdata.worldbank.org/)
+- Other structured / analytical data → [Development Data Hub](https://datacatalog.worldbank.org/)
+- Geospatial data → relevant World Bank geospatial platform or thematic hub
+
+Draft an email to the authors CC-ing `reproducibility@worldbank.org` so the team
+can follow up. See the email boilerplate in Section F.
+
+**Step 2 (minimum fallback — if archiving is not possible or out of scope):**
+The README must include **full contact information** for each data provider — not
+just a role or title. Required for each privately shared dataset:
+- Full name of the data provider
+- Institution and unit
+- Email address or official contact channel
+
+Flag any dataset where access instructions are vague (e.g., only "contact the
+Poverty Economist") and include this in the list of items required from authors.
+
+**Variable inventory (publication stage):**
+For any dataset that cannot be included in the package and is not clearly catalogued
+in an official repository, a **variable inventory** will be generated at Step 4
+(Prepare Publication) using `assets/variable_inventory.R`. This provides minimum
+documentation of dataset content and structure for future replicators.
 
 ---
 
@@ -204,12 +252,51 @@ undprocessed data. Could you confirm whether raw source data and the
 construction code are available?
 ```
 
-**For Microdata Library:**
+**For Bank-produced data → Microdata Library:**
 ```
 The dataset [filename] appears to be original data collected by your team.
 Per World Bank policy, this dataset should be archived in the Microdata
 Library (https://microdata.worldbank.org/). We have copied this message
 to microdata@worldbank.org for coordination.
+```
+
+**For privately shared data with vague access instructions (Step 1 — encourage archiving):**
+```
+We noticed that the following dataset(s) are currently accessible only through a
+personal share (OneDrive, etc.) with instructions to "contact the Poverty Economist":
+
+  - [Dataset name / filename]
+  - [Dataset name / filename]
+
+Per World Bank data policy, data used in World Bank projects should be archived in
+an official repository so that future replicators can obtain access through an
+institutional channel rather than a personal one. We would encourage you to work
+with the data owners to archive these datasets in the appropriate repository:
+
+  - Household surveys and microdata: World Bank Microdata Library
+    (https://microdata.worldbank.org/)
+  - Other structured / analytical data: Development Data Hub
+    (https://datacatalog.worldbank.org/)
+  - Geospatial data: the relevant World Bank geospatial platform
+
+We are copying this message to reproducibility@worldbank.org and can help
+coordinate if needed. If archiving is not possible before the publication deadline,
+please update the README with the full contact information (name, institution,
+and email) of the person who can grant access to each dataset.
+```
+
+**For privately shared data — minimum fallback (if archiving is not possible):**
+```
+If archiving the data is not feasible at this stage, please update the README
+to include, for each privately shared dataset, the full contact information of
+the person who can provide access:
+
+  - Full name
+  - Institution and unit
+  - Email address
+
+"Contact the Poverty Economist of [Country]" is not sufficient for a future
+replicator to identify and reach the right person.
 ```
 
 **Closing:**

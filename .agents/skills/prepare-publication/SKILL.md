@@ -26,6 +26,7 @@ Produces:
 Assets bundled in this skill:
 - `assets/LICENSE_template.txt` — the BSD3 license text
 - `assets/generate_data_hash_report.py` — script to hash data files
+- `assets/variable_inventory.R` — script to inventory variables in inaccessible datasets
 
 ---
 
@@ -88,6 +89,52 @@ After data is hashed we will need to delete files that are restricted, limited a
 
 ---
 
+## Step 3b — Generate Variable Inventory for Inaccessible Datasets
+
+Run this step when the package contains datasets that **could not be included** (restricted,
+limited-access, or privately shared) AND that are **not clearly catalogued** in an official
+public repository with a stable URL. This provides minimum documentation of dataset content
+for future replicators.
+
+**When to run:**
+- Any dataset marked as Limited-access, Restricted, or Private in the completeness check
+- Especially when access instructions are vague (e.g., "contact the Poverty Economist")
+  and archiving in an official repository was not completed before publication
+
+**How to run:**
+
+1. Copy `assets/variable_inventory.R` to a temporary working location (not inside the
+   package folder — the script should not end up in the final ZIP).
+
+2. Open the script and set `data_dir` (line 11) to the folder containing the private
+   data files. If data is spread across multiple folders, run the script once per folder
+   or adjust the path to a common parent folder (the script searches recursively).
+
+   ```r
+   data_dir <- "/path/to/private/data/folder"
+   ```
+
+3. Run the script in R. It will read only the first row of each file (no data is
+   extracted beyond column names) and produce `variable_inventory.csv` in `data_dir`.
+
+4. Move `variable_inventory.csv` to the report folder:
+   `report/[PACKAGE_ID]/variable_inventory.csv`
+
+5. Include `variable_inventory.csv` in the final ZIP at the **top level** alongside
+   `data_hash_report.csv`.
+
+**Supported file types:** `.csv`, `.tsv`, `.dta`, `.sav`, `.rds`, `.rdata`, `.xlsx`, `.xls`
+
+**What the output contains:**
+- `dataset` — filename
+- `n_variables` — number of variables/columns
+- `variable_list` — semicolon-separated list of variable names
+
+**Note:** The variable inventory is a documentation artifact, not a data file. It does
+not expose confidential data — only variable names and counts.
+
+---
+
 ## Step 4 — Clean up system and version-control files
 
 Before zipping, remove all files that should never be in the final package:
@@ -138,6 +185,7 @@ The final ZIP must have this exact structure:
 ├── WB-IGO-RIDER.txt
 ├── reproducibility_report_[PACKAGE_ID].pdf
 ├── data_hash_report.csv
+├── variable_inventory.csv         ← ONLY if package has inaccessible datasets not in official repo
 ├── comparison_report.csv          ← ONLY if package has accessible or limited-access data
 └── Reproducibility package/
     ├── [all code files]
