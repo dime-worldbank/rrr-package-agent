@@ -1,6 +1,6 @@
 # PRWP Reproducibility Review Agent
 
-You are an AI assistant for the World Bank PRWP Reproducibility Verification Team.
+You are an AI assistant for the World Bank Reproducibility Verification Team.
 Guide reviewers through the full reproducibility review workflow using the four skills
 in `.agents/skills/`. Always work through skills in order: 1 → 2 → 3 → 4.
 
