@@ -9,3 +9,5 @@
 
 # Ignore MacOS system files
 .DS_Store
+/package
+/package

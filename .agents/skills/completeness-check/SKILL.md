@@ -35,7 +35,7 @@ Check each item. Mark ✅ PRESENT or ❌ MISSING.
 ### A1. Manuscript
 - Is a manuscript (PDF or Word doc) included, OR is there a link to the published paper?
 - **Why it matters**: Without the manuscript, you cannot compare code outputs to paper exhibits.
-- **If missing**: Flag for author email — this is a hard blocker.
+- **If missing**: Flag for confirmation of manuscript receipt by reviewer - manuscript may have been processed elsewhere
 
 ### A2. README file
 Check the README covers ALL of the following. Each sub-item can be ✅ or ❌:
@@ -55,6 +55,19 @@ A README missing some items → note issues, proceed with review, include in aut
 - [ ] No unnecessary code (e.g., exploratory scripts, old versions) — note but don't block
 
 ### A4. Data
+- [ ] **File inventory check** — List directory contents and identify each file
+      by extension BEFORE attempting to read content. Use `ls -la` / directory
+      listing, not a text-preview tool, to establish presence. A file is
+      PRESENT if it exists on disk, regardless of whether its content can be
+      previewed as plain text.
+      - Binary formats (.dta, .xlsx, .sav, .rds) will NOT render in a generic
+        text/markdown viewer — this is expected and does NOT mean the file
+        is missing. Do not mark a file as "not found" solely because a text
+        viewer returned no output or an encoding error.
+      - To inspect binary data files, use the appropriate reader:
+        - .dta → `pandas.read_stata()` or Stata `use`/`describe`
+        - .xlsx → `openpyxl` / `pandas.read_excel()`
+        - .sav → `pyreadstat` / `pandas.read_spss()`
 - [ ] Raw data files are present (for verification purposes)
 - [ ] Data looks **unprocessed** — see Section C for how to assess this
 - [ ] If data is restricted/private: README explains how to access it
