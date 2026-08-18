@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+"""
+Prepare a reproducibility package for publication.
+
+Checks a package folder for the elements Skill 4 requires, and creates
+whatever's missing and can be automated:
+  - LICENSE.txt (from template, year filled in)
+  - WB-IGO-RIDER.txt (from template)
+  - README.pdf (converted from a .docx if needed, top level)
+  - data_hash_report.csv (SHA-256 hash of every file in data/)
+  - reproducibility_report_<PACKAGE_ID>.pdf
+                              (copied in from the report folder if found)
+
+Usage:
+    python prepare_publication.py <path_to_package> [<path_to_report_dir>]
+
+Existing files are never overwritten - if something's already there, it's
+left alone and reported as ok.
+"""
+
+import csv
+import hashlib
+import shutil
+import sys
+from datetime import datetime
+from pathlib import Path
+
+ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets"
+
+
+def add_license(package_dir: Path) -> None:
+    target = package_dir / "LICENSE.txt"
+    if target.exists():
+        # skips creation if exists
+        print("[ok]      LICENSE.txt already present")
+        return
+    text = (ASSETS_DIR / "LICENSE_template.txt").read_text(encoding="utf-8")
+    text = text.replace("%%YEAR%%", str(datetime.now().year))  # fill in this year
+    target.write_text(text, encoding="utf-8")
+    print("[created] LICENSE.txt")
+
+
+def add_igo_rider(package_dir: Path) -> None:
+    target = package_dir / "WB-IGO-RIDER.txt"
+    if target.exists():
+        print("[ok]      WB-IGO-RIDER.txt already present")
+        return
+    # drop the template in as-is
+    shutil.copyfile(ASSETS_DIR / "WB-IGO-RIDER.txt", target)
+    print("[created] WB-IGO-RIDER.txt")
+
+
+def prepare_readme(package_dir: Path) -> None:
+    target = package_dir / "README.pdf"
+    if target.exists():
+        print("[ok]      README.pdf already present at top level")
+        return
+
+    # look for a Word doc at the top level or one folder down
+    docx_candidates = (
+        list(package_dir.glob("*.docx")) + list(package_dir.glob("*.doc"))
+        + list(package_dir.glob("*/*.docx")) + list(package_dir.glob("*/*.doc"))
+    )
+    if not docx_candidates:
+        print("[ACTION]  No README.pdf and no .docx README found - add one manually")
+        return
+
+    source = docx_candidates[0]
+    try:
+        # docx2pdf drives MS Word through COM automation, so this only works
+        # on a machine that has Word installed
+        from docx2pdf import convert
+        convert(str(source), str(target))
+    except Exception as e:
+        print(f"[ACTION]  Found {source.name} but couldn't auto-convert it to PDF "
+              f"({e}) - convert by hand and save as README.pdf")
+        return
+
+    if target.exists():
+        print(f"[created] README.pdf (converted from {source.name})")
+    else:
+        print(f"[ACTION]  Conversion of {source.name} did not produce README.pdf")
+
+
+def generate_data_hash_report(package_dir: Path) -> None:
+    target = package_dir / "data_hash_report.csv"
+    if target.exists():
+        print("[ok]      data_hash_report.csv already present")
+        return
+
+    data_folder = package_dir / "data"
+    if not data_folder.is_dir():
+        print(f"[ACTION]  No 'data' folder found under {package_dir} - "
+              f"generate data_hash_report.csv manually")
+        return
+
+    rows = []
+    for path in sorted(data_folder.rglob("*")):
+        if not path.is_file() or path.name.startswith("."):
+            continue  # skip folders and hidden/system files
+        h = hashlib.sha256()
+        with open(path, "rb") as f:
+            # reading in chunks so GB-intensive data file doesn't get loaded into memory whole
+            for chunk in iter(lambda: f.read(65536), b""):
+                h.update(chunk)
+        rows.append({
+            "file": str(path.relative_to(data_folder)),
+            "size_bytes": path.stat().st_size,
+            "sha256": h.hexdigest(),
+            "hashed_on": datetime.now().strftime("%Y-%m-%d"),
+        })
+
+    with open(target, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["file", "size_bytes", "sha256", "hashed_on"])
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print(f"[created] data_hash_report.csv ({len(rows)} files hashed)")
+
+
+def include_reproducibility_report(package_dir: Path, report_dir: Path | None,
+                                    package_id: str) -> None:
+    target = package_dir / f"reproducibility_report_{package_id}.pdf"
+    if target.exists():
+        print(f"[ok]      reproducibility_report_{package_id}.pdf already present")
+        return
+
+    if report_dir and report_dir.exists():
+        # try the exact expected filename first, then loosen up if that's not there
+        matches = (
+            sorted(report_dir.glob(f"reproducibility_report*{package_id}*.pdf"))
+            or sorted(report_dir.glob("reproducibility_report*.pdf"))
+            or sorted(report_dir.glob("*report*.pdf"))
+        )
+        if matches:
+            shutil.copyfile(matches[0], target)
+            print(f"[created] reproducibility_report_{package_id}.pdf "
+                  f"(copied from {matches[0].name})")
+            return
+
+    print(f"[ACTION]  No reproducibility report found - add "
+          f"reproducibility_report_{package_id}.pdf to the package")
+
+
+def main() -> int:
+    if len(sys.argv) < 2:
+        print("Usage: python prepare_publication.py <path_to_package> [<path_to_report_dir>]")
+        return 1
+
+    package_dir = Path(sys.argv[1]).resolve()
+    report_dir = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else None
+    package_id = package_dir.name  # assumes the folder is named after the package
+
+    if not package_dir.is_dir():
+        print(f"ERROR: package folder not found: {package_dir}")
+        return 1
+
+    print(f"Preparing {package_id} for publication ({package_dir})\n")
+
+    add_license(package_dir)
+    add_igo_rider(package_dir)
+    prepare_readme(package_dir)
+    generate_data_hash_report(package_dir)
+    include_reproducibility_report(package_dir, report_dir, package_id)
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
