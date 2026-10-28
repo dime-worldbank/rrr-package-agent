@@ -191,12 +191,36 @@ documentation of dataset content and structure for future replicators.
 
 ## Section E — Generate Checklist Report
 
-After working through Sections A–D, produce a structured report in this format:
+After working through Sections A–D, produce a structured report in this format.
+
+The report MUST open with an **AT A GLANCE** section, before any other content.
+This section is the first thing the reviewer and coordinator will read, so it must
+be scannable in a few seconds:
+- One line per item, no sub-bullets, no explanation — just the ✅/❌ verdict and a
+  3-6 word reason if ❌ or ⚠️.
+- Use exactly these markers: ✅ PRESENT, ❌ MISSING, ⚠️ PARTIAL / FLAG.
+- Cover, in this order: Manuscript, README, Code, Data, Outputs, Data Availability
+  Statement, Data Flags (Microdata Library / third-party access — only include this
+  row if a flag from Section D applies).
+- The detailed narrative (with filenames, sub-item breakdowns, and explanations)
+  still follows below, in the CORE COMPONENTS / DATA AVAILABILITY STATEMENT / DATA
+  FLAGS sections — the at-a-glance summary does not replace that detail, it precedes it.
 
 ```
 COMPLETENESS CHECK — [PACKAGE ID]
 Date: [today]
 Reviewer: [name]
+==========================================
+
+AT A GLANCE
+  ✅ PRESENT   Manuscript
+  ❌ MISSING   README — missing software version, output mapping
+  ✅ PRESENT   Code
+  ✅ PRESENT   Data
+  ❌ MISSING   Outputs
+  ⚠️ PARTIAL   Data Availability Statement — rights statement missing
+  ⚠️ FLAG      Data flags — MICRODATA LIBRARY (hh_survey_endline.dta)
+
 ==========================================
 
 CORE COMPONENTS
