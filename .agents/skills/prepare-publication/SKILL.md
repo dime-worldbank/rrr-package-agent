@@ -21,7 +21,7 @@ Produces:
 2. `README.pdf` (converted from README if not already PDF)
 3. `data_hash_report.csv` (SHA-256 hashes of all data files)
 4. `[PACKAGE_ID].zip` with correct internal structure
-5. A metadata checklist ready for the Metadata Editor
+5. `[PACKAGE_ID].json` — dataset, software and run-instruction metadata for the Metadata Editor (Step 6b)
 
 Assets bundled in this skill:
 - `assets/LICENSE_template.txt` — the BSD3 license text
@@ -85,7 +85,9 @@ https://github.com/worldbank/wb-reproducible-research-repository/tree/main/resou
 or code). If the package has both public and private data, hash all data that
 was used for verification, even if restricted data won't be in the public package.
 
-After data is hashed we will need to delete files that are restricted, limited access or forthcoming in the Microdata Library, so we want to have the hashes of all data files before we delete any. Delete files, let the user know what was deleted, and ask them to confirm everything was deleted before proceeding.
+**Do not delete any restricted, limited-access, or forthcoming data files yet.**
+Step 3b (variable inventory) still needs to read those files. Deletion happens in
+Step 3c, after both the hash report and the variable inventory are done.
 
 ---
 
@@ -132,6 +134,23 @@ for future replicators.
 
 **Note:** The variable inventory is a documentation artifact, not a data file. It does
 not expose confidential data — only variable names and counts.
+
+---
+
+## Step 3c — Delete Restricted, Limited-Access, or Forthcoming Data Files
+
+Only run this step after **both** Step 3 (hash report) and Step 3b (variable inventory,
+if applicable) are complete — this is the last chance to read those files before they're
+gone from the package.
+
+1. Using the completeness check's data classification, list every file/folder that is
+   Restricted, Limited-access, or Forthcoming (Microdata Library) — i.e. everything that
+   is not Open.
+2. Show the reviewer the exact list of files/folders to be deleted and what will be kept,
+   and get explicit confirmation before deleting anything (this is a bulk, hard-to-reverse
+   action).
+3. Delete the confirmed files, then let the reviewer know what was deleted and ask them to
+   confirm everything was removed before proceeding to Step 4.
 
 ---
 
@@ -219,7 +238,75 @@ The final ZIP must have this exact structure:
 
 
 ---
+
+## Step 6b — Prepare Metadata JSON (datasets, software, instructions)
+
+Draft the dataset and run sections of the Metadata Editor entry and save them as
+`report/[PACKAGE_ID]/[PACKAGE_ID].json` under `project_desc`. The reviewer pastes this into
+the Metadata Editor, which adds the title, authors, abstract, topics, tags and DataCite fields.
+Use the finished entries in `assets/` as models: `RR_IDN_2026_708.json` (restricted and
+author-constructed data), `RR_PNG_2026_696.json`, `RR_COL_2026_743.json`.
+
+Sources: the README's Data Availability Statement, the completeness check, the final
+reproducibility report, `data_hash_report.csv` and `variable_inventory.csv`.
+
+**Fields to draft:**
+- `datasets` — one entry per dataset (see rules below)
+- `software` — name and the version used in verification (from the reproducibility report),
+  e.g. `[{"name": "Stata", "version": "19.5 MP"}, {"name": "R", "version": "4.4.0"}]`
+- `scripts` — title, date (`YYYY-MM`), notes, `"instructions": "See README in reproducibility package."`,
+  file_name, zip_package, and short `dependencies` (e.g. `"Stata dependencies are listed in the ado folder."`)
+- `technology_requirements` — runtime (e.g. `"Runtime ~ 2 hours."`) plus any disk/memory notes
+- `technology_environment` — `"Paper exhibits were reproduced on a computer with the following
+  specifications:"` followed by OS, processor and memory available, one per line. Do **not** list
+  software versions here; they go only in `software`.
+- `reproduction_instructions` — numbered steps: secure data access, which script to open,
+  which line to change, run order
+
+Do not add a `methods` field.
+
+**Dataset entry rules:**
+- **No acronyms in names where avoidable.** Spell names out in English, giving the acronym in
+  parentheses only if it is how the source is known: "World Integrated Trade Solution (WITS)
+  Product Concordance", "Annual Manufacturing Survey, plant-level microdata" (not "BPS
+  Statistik Industri"), "Input-Output (IO) Sectors to Standard Classification of Indonesian
+  Business Fields (KBLI) Concordance". Prefer English names over local-language titles.
+- **One entry per dataset, not per file.** If several files come from the same source or
+  compilation, list all filenames in a single entry's `note`
+  (`"Filename: Data/Raw/a.dta; Data/Raw/b.dta."`).
+- **`note`** — start with `Filename: <path>.`, then the source, what the data contains, and
+  what it is used for in the code. For data not in the package, add "A list of variables is
+  provided in variable_inventory.csv, and the file hash is in data_hash_report.csv."
+- **Restricted/confidential data** (not in the package):
+  - `access_type`: `"Data is restricted, and it is not included in the reproducibility package."`
+  - `license`: `"Confidential"`
+  - `citation`: end with `"Unpublished data."` (plus how it was accessed, e.g. "Accessed
+    through a World Bank collaboration.")
+  - `note`: end with the author contact taken from the authors' details, e.g. "For more details
+    on the data, interested users can reach out to one of the authors at <author email>."
+- **Author-constructed data** (concordances, crosswalks, compilations included in the package):
+  - `access_type`: `"Data is included in the reproducibility package."`
+  - `license`: `"Custom License"`
+  - `citation`: `"Authors' compilation, World Bank. (YEAR). <Dataset name>"`
+- **Public data included in the package:**
+  - `access_type`: `"Data is publicly available and included in the reproducibility package."`
+  - `license`: the provider's terms (e.g. `"Public"`, `"Central Statistics Agency (BPS) Terms of
+    Use"`), with `license_uri` when the provider has a terms-of-use page
+  - `uri`: the download page
+- **Data no longer publicly available in the version used** (e.g. an older vintage): say so in
+  `access_type` and the `note`, link the current public version in `uri`, add the author contact.
+- **Citation format:** `Producer. (YEAR). Title [dataset]. Publisher. URL` — always include the
+  year and the URL when there is one.
+
+Flag any README `[PLEASE FILL]` or missing source information to the reviewer rather than
+guessing.
+
+
+---
 ## Step 7 — Send Final Email to Authors
+
+**Do this only after Skill 5 (pre-publication review) returns "Ready to go live"** and the package
+is live on the Reproducible Research Repository. Never send PII-flagged packages live.
 
 Write an email to the authors with the following template, customizing as needed. Attach the reproducibility verification report and include the link to the package in the Reproducible Research Repository. 
 

@@ -1,8 +1,8 @@
 # PRWP Reproducibility Review Agent
 
 You are an AI assistant for the World Bank Reproducibility Verification Team.
-Guide reviewers through the full reproducibility review workflow using the four skills
-in `.agents/skills/`. Always work through skills in order: 1 → 2 → 3 → 4.
+Guide reviewers through the full reproducibility review workflow using the five skills
+in `.agents/skills/`. Always work through skills in order: 1 → 2 → 3 → 4 → 5.
 
 ## Repo structure
 
@@ -12,7 +12,8 @@ rrr-package-agent/
 │   ├── completeness-check/
 │   ├── run-package/
 │   ├── create-report/
-│   └── prepare-publication/
+│   ├── prepare-publication/
+│   └── prepublication-review/
 ├── package/                         ← submitted reproducibility packages
 │   └── RR_WLD_2025_XX/              ← one folder per review
 ├── report/                          ← outputs you produce during review
@@ -28,6 +29,7 @@ rrr-package-agent/
 | 2 — Run Package | `run-package/` | "run the code", "set up environment", "step 2" |
 | 3 — Create Report | `create-report/` | "create the report", "write the report", "step 3" |
 | 4 — Prepare Publication | `prepare-publication/` | "prepare the package", "step 4" |
+| 5 — Pre-publication Review | `prepublication-review/` | "PII check", "final check", "step 5" |
 
 When a skill is triggered, read the full `SKILL.md` from the relevant folder before responding.
 You have direct filesystem access — read the package files in `package/RR_WLD_2025_XX/`
