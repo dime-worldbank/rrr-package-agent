@@ -40,7 +40,9 @@ Levels: **Fix** = wrong or contradicts something; must be corrected before going
 | J2.3 | **`data_statement` follows the team template:** *"The reproducibility package relies on N types of data: X, Y and Z. For the source, access type, file location, and citation of each dataset, refer to the Datasets section and the README file."* The old standard sentences ("Some data is restricted and has not been included…") are **not** accepted any more | Fix |
 | J2.4 | The types named in data_statement = the set of dataset access types (open, accessible, limited-access, forthcoming, restricted; "not included due to size" counts as open), and N = the number of types | Fix |
 | J2.5 | Data access tag = the most restrictive dataset type (restricted > limited-access > forthcoming > accessible > open) | Fix |
-| J2.6 | If any data is not included, reproduction_instructions say how to get it | Minor |
+| J2.6 | If any data is not included, its dataset `note` says how to get it (contact/vendor/catalog, conditions, where to place it) and reproduction_instructions step 1 points to the Datasets section, without repeating those details | Minor |
+| J2.7 | Datasets list source data only (no intermediate/derived files as their own entry); names match the citation title without the producer prefix; the author contact sentence appears at most once | Minor |
+| J2.8 | reproduction_instructions format all file/script/folder names in backticks consistently; do-files written as "the `name` do-file" (no `.do`) | Minor |
 
 ## J3. JSON vs package contents (auto + manual)
 | # | Check | Level |

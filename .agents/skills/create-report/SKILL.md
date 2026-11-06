@@ -5,8 +5,8 @@ description: >
   Triggers when a reviewer says "create the report", "write the report", "draft the report",
   "step 3", "generate the verification report", "fill in the report", or "document the exhibits".
   Collects all needed information (exhibits, title, date, runtime, system specs, data handling)
-  and generates a complete LaTeX reproducibility report. The template is bundled in
-  assets/report_template.tex. Also works for Markdown output if preferred.
+  and generates the reproducibility report in two formats: Markdown (.md, the working
+  version) and LaTeX (.tex, from assets/report_template.tex).
 ---
 
 # Skill 3 — Create Report
@@ -15,8 +15,13 @@ description: >
 Collects all review information and fills in the reproducibility report.
 The LaTeX template is at `assets/report_template.tex` in this skill folder.
 
-Produces: a filled `verification_report_[PACKAGE_ID].tex` ready for Overleaf or
-local LaTeX compilation.
+Produces, in `report/[PACKAGE_ID]/`:
+- `verification_report_[PACKAGE_ID].md` — the main version, reviewed in VS Code and
+  exported to PDF (see **Markdown report format** below)
+- `verification_report_[PACKAGE_ID].tex` — the same content filled into the LaTeX
+  template, for Overleaf or local compilation (kept for now, alongside the .md)
+
+Both files must have the same sections, wording and exhibit statuses.
 
 ---
 
@@ -222,62 +227,134 @@ Once you have all the information above, do the following:
 | `%%MEMORY%%` | e.g. `15.7 GB` |
 | `%%SOFTWARE%%` | e.g. `Stata 18.0 MP` |
 
-3. **Compile** in Overleaf or locally with `pdflatex`.
+3. **Write the Markdown version** following **Markdown report format** below.
+
+4. **Compile** in Overleaf or locally with `pdflatex`.
    - Overleaf template: https://www.overleaf.com/2996348989fbgvwfqrxgtj#6ccc49
    - Make sure `RRR Logo.png` is in the same folder (or `graphics/` subfolder)
 
-4. **Name the output PDF**: `reproducibility_report_[PACKAGE_ID].pdf`
+5. **Name the output PDF**: `reproducibility_report_[PACKAGE_ID].pdf`
 
 ---
 
-## Markdown alternative
+## Markdown report format
 
-If the reviewer prefers Markdown (e.g. for GitHub Copilot context or quick drafts),
-produce this structure instead:
+Always produce the `.md` alongside the `.tex`. It should look as close as possible to
+the compiled LaTeX PDF. Reference example: `report/RR_WLD_2026_806/verification_report_RR_WLD_2026_806.md`.
+
+Rules:
+- **Logo**: copy `assets/RRR Logo.png` to `report/[PACKAGE_ID]/graphics/` and reference it
+  as `graphics/RRR%20Logo.png`.
+- **Body text and links are black.** Only exhibit statuses and the overall status line
+  are colored. Do not use plain Markdown links (`[text](#x)`) — previews show them in a
+  link color. Use `<a href="#x" style="color:inherit;text-decoration:none">…</a>` so they
+  render like body text but stay clickable.
+- **Internal links** (like `
+ameref` in the .tex): put an explicit anchor
+  `<a id="..."></a>` on its own line before each section heading, using the same ids as
+  the .tex labels: `main-findings`, `output-list`, `reproduction-environment`. The
+  Contents list and any cross-reference ("see Section 2") link to these ids.
+- **Status colors** (inline `<span style="color:...">`):
+
+| Status | LaTeX color | Hex |
+|--------|-------------|-----|
+| Reproduced. | OliveGreen | `#3C8031` |
+| Reproduced (manual changes). | LimeGreen | `#8DC73E` |
+| All values reproduced. | Goldenrod | `#FFDF42` |
+| Could not be verified. | BurntOrange | `#F7921D` |
+| Does not reproduce. | Red | `#ED1B23` |
+| Does not apply. | Gray | `#949698` |
+
+- Exhibits are bullet lists (as in the .tex), not tables.
+- For "does not reproduce" comparisons, show Code and Paper screenshots side by side
+  with an HTML `<table>` of two `<img>` cells (images in `graphics/`).
+
+Skeleton:
 
 ```markdown
-# Reproducibility Report — [PACKAGE ID]
-**Paper:** [Title]
-**Reviewer:** [Name]
-**Date:** [Date]
+<div align="center">
 
----
+<img src="graphics/RRR%20Logo.png" alt="Reproducible Research Repository" width="70%">
 
-## Main Findings
-- [Overall status line]
-- Code ran after: [list changes]
-- Stable across [N] runs
-- Runtime: ~[X] minutes
+<h1><em>[Paper title]</em></h1>
 
-### Reproducibility Summary
-- **Data:** [statement]
-- **Code:** [statement]
-- **Outputs:** [statement]
-- **Environment:** [statement]
+<h3><em>First Submission: [PACKAGE_ID]<br>[Reviewer name]<br>reproducibility@worldbank.org</em></h3>
 
----
+<h3><em>[Date]</em></h3>
 
-## Exhibit List
+</div>
 
-### Main Section
-| Exhibit | Status | Notes |
-|---------|--------|-------|
-| Figure 1 | ✅ Reproduced | |
-| Table 2 | ❌ Does not reproduce | Values differ for row X |
+This review verifies the reproducibility of the exhibits included in the paper *"[Paper title]"*.
 
-### Appendix
-[Note on sampling if applicable]
-| Exhibit | Status | Notes |
-...
+**Contents in this review**:
 
----
+1. <a href="#main-findings" style="color:inherit;text-decoration:none">Main findings</a>
+2. <a href="#output-list" style="color:inherit;text-decoration:none">List of exhibits and reproducibility status</a>
+3. <a href="#reproduction-environment" style="color:inherit;text-decoration:none">Reproduction Environment</a>
 
-## Reproduction Environment
+<a id="main-findings"></a>
+
+## 1 Main findings
+
+<span style="color:#3C8031"><strong>[Overall status line]</strong></span>
+
+- The code was successfully executed on a new computer after:
+  1. [Run step]
+
+- The output demonstrates consistent stability across multiple runs. Specifically, executing the code [N] times consecutively yielded identical results.
+
+- The code takes approximately [runtime] to run.
+
+- We conducted our reproducibility analysis based on the [manuscript version].
+
+- **Verification Process and Data Handling**:
+  - [Data handling lines]
+
+- **Reproducibility Summary**:
+  - **Data**: [statement]
+  - **Code**: [statement]
+  - **Outputs**: [statement]
+  - **Dependencies environment**: [statement]
+
+<a id="output-list"></a>
+
+## 2 List of exhibits and reproducibility status
+
+**Results in the Main Section of the Paper**
+
+- **Table 1** <span style="color:#3C8031">Reproduced.</span>
+- **Figure 2** <span style="color:#ED1B23">Does not reproduce.</span> [Explain differences.]
+
+<br>
+
+**Results in the Annex**
+
+[Appendix note]
+
+- **Table A1** <span style="color:#3C8031">Reproduced.</span>
+
+<a id="reproduction-environment"></a>
+
+## 3 Reproduction Environment
+
+Paper exhibits were reproduced on a computer with the following specifications:
+
 - OS: [OS]
 - Processor: [Processor]
-- Memory: [Memory]
-- Software: [Software]
+- Memory available: [Memory]
+- Software version: [Software]
 ```
+
+**Export the .md to PDF** (run it yourself, don't ask the reviewer to print from the preview):
+
+```
+python .agents/skills/create-report/scripts/md_to_pdf.py report/[PACKAGE_ID]/verification_report_[PACKAGE_ID].md
+```
+
+This writes `report/[PACKAGE_ID]/reproducibility_report_[PACKAGE_ID].pdf` using headless
+Chrome/Edge. The Contents links stay clickable, and YAML front matter is ignored. If the
+PDF is open in a viewer the script stops; ask the reviewer to close it and rerun.
+Read the PDF afterwards to check the layout.
 
 ---
 

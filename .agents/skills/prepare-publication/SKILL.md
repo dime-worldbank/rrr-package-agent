@@ -276,8 +276,8 @@ For the `datasets` entries, use the finished Metadata Editor exports in `assets/
 Sources: the README's Data Availability Statement, the completeness check, the final
 reproducibility report, `data_hash_report.csv` and `variable_inventory.csv`.
 
-**Fields to draft:**
-- `datasets` — one entry per dataset (see rules below)
+**Fields to draft** (exactly these five keys, nothing else — no `data_statement`, `title_statement`,
+`scripts` or `methods`; the app builds those from the survey):
 - `software` — name and the version used in verification (from the reproducibility report),
   e.g. `[{"name": "Stata", "version": "19.5 MP"}, {"name": "R", "version": "4.4.0"}]`.
   This replaces the software list the app takes from the survey.
@@ -285,12 +285,29 @@ reproducibility report, `data_hash_report.csv` and `variable_inventory.csv`.
 - `technology_environment` — `"Paper exhibits were reproduced on a computer with the following
   specifications:"` followed by OS, processor and memory available, one per line. Do **not** list
   software versions here; they go only in `software`.
-- `reproduction_instructions` — numbered steps: secure data access, which script to open,
-  which line to change, run order
-
-Do not add a `methods` field.
+- `reproduction_instructions` — starts "To reproduce the findings in this paper, a replicator must:", then numbered steps: secure
+  data access, which script to open, which line to change, run order. Keep it short:
+  - **Step 1 (data access) only points to the Datasets section**, e.g. "Secure data access: obtain
+    the restricted and limited-access datasets as described in the Datasets section and place them
+    in the locations listed there." Do **not** put contacts, emails, data use agreements, catalog
+    numbers, registration steps or vendor details here; those go in the dataset's `note`.
+  - **Format every file, folder, variable and script name in backticks**, consistently (never mix
+    backticked and plain names): `` `RawData/RESTRICTED_DATA/` ``, `` `micro_world.dta` ``,
+    `` `Master.m` ``, `` `run_PSVAR.m` ``.
+  - **Stata do-files are the exception**: the `.do` extension gets rendered as a link, so write the
+    name without the extension followed by "do-file": "open the `` `main` `` do-file", "run the
+    `` `code/A_collect_firm_data` `` do-file". Never write `main.do`.
+- `datasets` — one entry per dataset (see rules below)
 
 **Dataset entry rules:**
+- **Source data only, not intermediate data.** List the datasets the authors obtained (raw
+  downloads, licensed extracts, surveys, author-built crosswalks). Do not create an entry for a
+  file the code builds from other datasets (analysis panels, merged files, saved estimation
+  results); mention it as "(derived)" in the `note` of the dataset it comes from, or in
+  `reproduction_instructions` if users must rebuild it.
+- **Name = the dataset title used in the citation**, without the producer prefixed: "Global Debt
+  Database" (citation: "International Monetary Fund. (2025). Global Debt Database ..."), not
+  "International Monetary Fund (IMF) Global Debt Database". The producer belongs in the citation.
 - **No acronyms in names where avoidable.** Spell names out in English, giving the acronym in
   parentheses only if it is how the source is known: "World Integrated Trade Solution (WITS)
   Product Concordance", "Annual Manufacturing Survey, plant-level microdata" (not "BPS
@@ -302,13 +319,21 @@ Do not add a `methods` field.
 - **`note`** — start with `Filename: <path>.`, then the source, what the data contains, and
   what it is used for in the code. For data not in the package, add "A list of variables is
   provided in variable_inventory.csv, and the file hash is in data_hash_report.csv."
+- **Access details live in the `note` of each dataset not in the package**, not in
+  `reproduction_instructions`: who to contact (name, institution, email) or where to buy/register,
+  any data use agreement or approval, catalog/registration steps, and where to place the file in
+  the package folder (e.g. "Place the file in RawData/RESTRICTED_DATA/.").
+- **Author contact sentence at most once per JSON.** "For more details on the data, interested
+  users can reach out to one of the authors at <author email>." goes only in the entry where the
+  authors are the access route (e.g. restricted data they hold). Do not repeat it in every note,
+  and do not add it to licensed/commercial data obtained from a vendor.
 - **Restricted/confidential data** (not in the package):
   - `access_type`: `"Data is restricted, and it is not included in the reproducibility package."`
   - `license`: `"Confidential"`
   - `citation`: end with `"Unpublished data."` (plus how it was accessed, e.g. "Accessed
     through a World Bank collaboration.")
-  - `note`: end with the author contact taken from the authors' details, e.g. "For more details
-    on the data, interested users can reach out to one of the authors at <author email>."
+  - `note`: end with how to request access (the data owner's contact and conditions), per the
+    access-details rule above.
 - **Author-constructed data** (concordances, crosswalks, compilations included in the package):
   - `access_type`: `"Data is included in the reproducibility package."`
   - `license`: `"Custom License"`
