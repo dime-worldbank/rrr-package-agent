@@ -29,6 +29,16 @@ Produces: a **Run Log** to paste into the GitHub issue and later into the report
 Ask: **What software does this package use?**
 Then jump to the relevant environment section below.
 
+**Private data (data not in the workspace):** the reviewer runs the package on a secure
+machine. Do the setup work from the code only: list the dependencies, the root path line,
+the `.gitignore` below and a short run checklist. After the two runs, the reviewer runs
+`.agents/skills/completeness-check/scripts/private_bundle.py postrun`, which adds to
+`package/[PACKAGE_ID]/`: `data_hash_report_postrun.csv`, `hash_comparison.csv` (input vs.
+generated for every data file), `code_changes.diff` (all code changes since the
+`initial-package` commit), the output tables and figures, and `system_info.txt`. Use
+`hash_comparison.csv` to update the completeness check, and write the Run Log from these files
+plus the runtime and stability the reviewer reports. Never ask for data files or unread log files.
+
 ---
 
 ## Environment Setup — Stata
@@ -117,22 +127,43 @@ git add .
 git commit -m "initial-package"
 ```
 
-**Important `.gitignore` rules to add:**
+**`.gitignore` to add (from the protocol, §2).** Git tracks code and text/image outputs
+(`.csv`, `.tex`, `.txt`, `.png`, `.jpg`) so changes between runs show up as diffs. It ignores
+all binary files, since Git cannot show meaningful diffs for them, and the raw data folder.
+Adapt the raw data folder name to the package (`raw_data`, `data`, `Data`, `raw`, …).
 ```
-# Large data files (adjust extensions as needed)
+## This .gitignore is for reproducibility packages to track changes in outputs only
+
+## Binary output files - Git cannot show meaningful diffs for these
+*.pdf
+*.xlsx
+*.xls
 *.dta
-# Stata temporary files
+*.zip
+*.docx
+*.doc
+*.stswp
+*.rar
+*.7z
+*.rds
+*.RData
+*.sav
+*.parquet
+*.feather
+*.pkl
+
+## Stata, R, Python and system files
 *.smcl
-# R temporary files
 .Rhistory
-.RData
-# Python
 __pycache__/
 *.pyc
 myenv/
-# OS files
 .DS_Store
 Thumbs.db
+
+## Ignore the raw data folder
+## Note: adapt the folder name to match the package structure
+/raw_data
 ```
 
 > ⚠️ **This repository is LOCAL ONLY. Never push to GitHub.com.**
@@ -173,19 +204,19 @@ Thumbs.db
 
 ## Step 4 — Second Run (Stability Check)
 
-> Skip this step if the first run took more than 48 hours. Note "Single run — runtime
-> exceeded 48h threshold" in the run log.
+> Skip this step if the first run took more than 24 hours. Note "Single run — runtime
+> exceeded 24h threshold" in the run log.
 
 1. **Delete outputs again** (same as Step 3, point 1)
 2. **Run the package again** without any changes
 3. Commit:
    ```bash
    git add .
-   git commit -m "second-run"
+   git commit --allow-empty -m "second-run"   # --allow-empty: identical outputs still get a commit
    ```
 4. **Check for differences:**
    ```bash
-   git diff first-run second-run -- "*.csv" "*.txt" "*.png" "*.jpg"
+   git diff HEAD~1 HEAD -- "*.csv" "*.txt" "*.tex" "*.png" "*.jpg"   # second-run vs first-run commit
    ```
    Or in GitHub Desktop: compare the two commits visually.
 
@@ -281,7 +312,7 @@ CHANGES MADE TO CODE
 
 RUNTIME
   Run 1: ~[X] minutes/hours
-  Run 2: ~[X] minutes/hours (or: SKIPPED — runtime >48h)
+  Run 2: ~[X] minutes/hours (or: SKIPPED — runtime >24h)
 
 STABILITY
   ✅ Stable — no differences in .csv/.txt/.png outputs between runs

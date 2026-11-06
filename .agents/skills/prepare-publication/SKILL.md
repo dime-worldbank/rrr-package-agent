@@ -5,7 +5,7 @@ description: >
   complete and exhibits have been verified. Triggers when a reviewer says "prepare
   the package", "publication prep", "step 4", "zip the package", "add the license",
   "create the hash report", "prepare for publication", "publish the package", or
-  "finalize the package". Guides adding the BSD3 license, converting README to PDF,
+  "finalize the package". Guides adding the MIT license, converting README to PDF,
   generating the data hash report, assembling the final ZIP structure, and preparing
   metadata. Bundled assets: LICENSE_template.txt, generate_data_hash_report.py.
 ---
@@ -17,14 +17,14 @@ Assembles the final reproducibility package for publication on
 [reproducibility.worldbank.org](https://reproducibility.worldbank.org/).
 
 Produces:
-1. `LICENSE.txt` (Modified BSD3, year updated)
+1. `LICENSE.txt` (MIT License, year updated)
 2. `README.pdf` (converted from README if not already PDF)
 3. `data_hash_report.csv` (SHA-256 hashes of all data files)
 4. `[PACKAGE_ID].zip` with correct internal structure
-5. `[PACKAGE_ID].json` — dataset, software and run-instruction metadata for the Metadata Editor (Step 6b)
+5. `[PACKAGE_ID]_merge.json` — dataset, software and run metadata to paste into the Reproducibility File Generator app (Step 6b)
 
 Assets bundled in this skill:
-- `assets/LICENSE_template.txt` — the BSD3 license text
+- `assets/LICENSE_template.txt` — the MIT license text
 - `assets/generate_data_hash_report.py` — script to hash data files
 - `assets/variable_inventory.R` — script to inventory variables in inaccessible datasets
 
@@ -40,8 +40,8 @@ The license text starts with:
 ```
 Copyright [YEAR], World Bank
 ```
-followed by the full Modified BSD3 text. Reference URL for the license:
-https://opensource.org/license/bsd-3-clause/
+followed by the full MIT License text. Reference URL for the license:
+https://opensource.org/license/mit
 
 ---
 
@@ -84,6 +84,12 @@ https://github.com/worldbank/wb-reproducible-research-repository/tree/main/resou
 **What gets hashed:** All files inside the data folder (raw data only, not outputs
 or code). If the package has both public and private data, hash all data that
 was used for verification, even if restricted data won't be in the public package.
+
+**Private data (data not in the workspace):** do not hash anything. Copy
+`package/[PACKAGE_ID]/data_hash_report_prerun.csv` to `data_hash_report.csv`; it was made on the
+secure machine from the data as received. `variable_inventory.csv` is already in the bundle, so
+skip Step 3b, and Step 3c has nothing to delete. Keep empty placeholder folders where the private
+data lived, and keep the outputs in the package.
 
 **Do not delete any restricted, limited-access, or forthcoming data files yet.**
 Step 3b (variable inventory) still needs to read those files. Deletion happens in
@@ -242,10 +248,30 @@ The final ZIP must have this exact structure:
 ## Step 6b — Prepare Metadata JSON (datasets, software, instructions)
 
 Draft the dataset and run sections of the Metadata Editor entry and save them as
-`report/[PACKAGE_ID]/[PACKAGE_ID].json` under `project_desc`. The reviewer pastes this into
-the Metadata Editor, which adds the title, authors, abstract, topics, tags and DataCite fields.
-Use the finished entries in `assets/` as models: `RR_IDN_2026_708.json` (restricted and
-author-constructed data), `RR_PNG_2026_696.json`, `RR_COL_2026_743.json`.
+`report/[PACKAGE_ID]/[PACKAGE_ID]_merge.json`. The reviewer pastes (or uploads) this file in
+the **Reproducibility File Generator** app under "Add Datasets & Reproduction Info", clicks
+**Merge & Preview**, then publishes from the app. The app builds everything else from the
+SurveyCTO submission (title, authors, abstract, topics, data statement, scripts, license,
+contacts, DataCite).
+
+**Format: a flat JSON object with exactly these five top-level keys.** Do not wrap them in
+`project_desc` and do not add other keys; the app ignores anything else.
+
+```json
+{
+  "datasets": [ { "name": "...", "note": "...", "access_type": "...", "license": "...", "citation": "...", "uri": "..." } ],
+  "software": [ { "name": "Stata", "version": "19.5 MP" } ],
+  "technology_requirements": "Runtime ~ 2 hours.",
+  "technology_environment": "Paper exhibits were reproduced on a computer with the following specifications:\n• OS: ...\n• Processor: ...\n• Memory available: ...",
+  "reproduction_instructions": "To reproduce the findings in this paper, a replicator must:\n1. ...\n2. ..."
+}
+```
+
+Validate it before handing it over: `python -m json.tool report/[PACKAGE_ID]/[PACKAGE_ID]_merge.json`.
+`report/RR_BRA_2026_751/metadata_RR_BRA_2026_751.json` is a finished example of this format.
+For the `datasets` entries, use the finished Metadata Editor exports in `assets/` as models:
+`RR_IDN_2026_708.json` (restricted and author-constructed data), `RR_PNG_2026_696.json`,
+`RR_COL_2026_743.json` (their datasets sit under `project_desc`; copy the entry style, not the nesting).
 
 Sources: the README's Data Availability Statement, the completeness check, the final
 reproducibility report, `data_hash_report.csv` and `variable_inventory.csv`.
@@ -253,9 +279,8 @@ reproducibility report, `data_hash_report.csv` and `variable_inventory.csv`.
 **Fields to draft:**
 - `datasets` — one entry per dataset (see rules below)
 - `software` — name and the version used in verification (from the reproducibility report),
-  e.g. `[{"name": "Stata", "version": "19.5 MP"}, {"name": "R", "version": "4.4.0"}]`
-- `scripts` — title, date (`YYYY-MM`), notes, `"instructions": "See README in reproducibility package."`,
-  file_name, zip_package, and short `dependencies` (e.g. `"Stata dependencies are listed in the ado folder."`)
+  e.g. `[{"name": "Stata", "version": "19.5 MP"}, {"name": "R", "version": "4.4.0"}]`.
+  This replaces the software list the app takes from the survey.
 - `technology_requirements` — runtime (e.g. `"Runtime ~ 2 hours."`) plus any disk/memory notes
 - `technology_environment` — `"Paper exhibits were reproduced on a computer with the following
   specifications:"` followed by OS, processor and memory available, one per line. Do **not** list

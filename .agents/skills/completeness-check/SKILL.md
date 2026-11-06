@@ -28,6 +28,39 @@ describe what they can see). Then work through each section below in order.
 
 ---
 
+## Private data — working from the data hash report
+
+Use this mode when the package has **any** restricted, confidential, limited-access or
+forthcoming file. The data then stays on the reviewer's secure machine and is **not** in
+`package/[PACKAGE_ID]/`. Instead the folder holds the code, README/DAS, manuscript, any open
+data, and the files the reviewer generated on the secure machine with
+`scripts/private_bundle.py prerun` (in this skill folder):
+
+- `data_hash_report_prerun.csv` — file name, size and SHA-256 of every data file as received
+- `variable_inventory.csv` — variable names and counts per data file (no values)
+- `bundle_manifest_prerun.txt` — what was copied into the bundle and what was left out
+
+In this mode:
+- Never look for, request or open data files. Do not ask for log files the reviewer has not read.
+- **A4 file inventory:** use the hash report as the inventory. A file is PRESENT if it is in the report.
+- **Code vs. data:** find every file the code reads (`use`, `import`, `merge using`, `read_*`,
+  `open`, `pd.read_*`, …) and match it against the hash report. Flag reads with no match.
+- **Section B:** match the file names in the hash report against the DAS; every input file must
+  be documented.
+- **Section C (raw vs. processed):** judge from file names, the variable inventory and whether a
+  cleaning script reads the file.
+- **Section D (Bank-produced data):** use README wording and variables such as respondent IDs,
+  GPS or consent in the inventory.
+- Mark anything that needs the data itself (values, comparison with the public source, manual
+  edits) as **Reviewer to confirm** in the checklist.
+- Input vs. generated is confirmed after the run (Skill 2): `private_bundle.py postrun` writes
+  `hash_comparison.csv`, where "input (unchanged)" files must be documented in the DAS.
+- If a file the code loads is in `bundle_manifest_prerun.txt` under NOT COPIED, it is data
+  outside the data folder: list it as data, and ask the reviewer whether it should be in the
+  data folder.
+
+---
+
 ## Section A — Core Package Components
 
 Check each item. Mark ✅ PRESENT or ❌ MISSING.

@@ -11,6 +11,11 @@
 data_dir <- "PTH HERE"
 # --------------------------------
 
+# Optional command-line use: Rscript variable_inventory.R <data_dir> [output_csv]
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) >= 1) data_dir <- args[1]
+out_path <- if (length(args) >= 2) args[2] else file.path(data_dir, "variable_inventory.csv")
+
 # Supported file types and their readers
 supported_ext <- c("csv", "dta", "rds", "rdata", "xlsx", "xls", "sav", "tsv")
 
@@ -93,7 +98,6 @@ for (i in seq_along(target_files)) {
 # ---- Combine and write output ----
 inventory <- do.call(rbind, results)
 
-out_path <- file.path(data_dir, "variable_inventory.csv")
 write.csv(inventory, file = out_path, row.names = FALSE)
 
 cat(sprintf("\nDone. Inventory saved to:\n%s\n", out_path))

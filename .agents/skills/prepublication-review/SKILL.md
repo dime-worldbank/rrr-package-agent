@@ -51,7 +51,7 @@ You need two files. If either is missing, ask the reviewer for it. Do not guess 
 1. **The final ZIP** from Skill 4 Step 6 (`[PACKAGE_ID].zip`). Look in `package/[PACKAGE_ID]/` and
    `report/[PACKAGE_ID]/` first.
 2. **The Metadata Editor JSON export** (`[PACKAGE_ID].json`, exported from the Metadata Editor after the
-   reviewer entered the metadata). The draft written in Skill 4 Step 6b is only the `project_desc`
+   reviewer entered the metadata). The `[PACKAGE_ID]_merge.json` written in Skill 4 Step 6b is only the
    dataset/run sections, so it will fail many J1 checks (title, producers, DataCite, tags). Use the
    full export; if the reviewer only has the draft, say which checks will be skipped.
 

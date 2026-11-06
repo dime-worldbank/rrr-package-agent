@@ -55,7 +55,7 @@ If no changes were needed: `\item No modifications were required.`
 
 ### 4. Runtime and Stability
 - How long did the package take to run? (e.g. "~45 minutes", "~3 hours")
-- How many runs were completed? (almost always 2; 1 if runtime >48h)
+- How many runs were completed? (almost always 2; 1 if runtime >24h)
 - Was the output stable? (Yes / No — if No, describe)
 
 ### 5. System Specifications
