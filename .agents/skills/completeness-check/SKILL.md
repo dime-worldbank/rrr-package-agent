@@ -23,8 +23,8 @@ reproducibility package. Produces:
 
 ## How to use this skill
 
-Ask the reviewer to share the package location (local path, SharePoint link, or
-describe what they can see). Then work through each section below in order.
+Read the files in `package/[PACKAGE_ID]/` directly (extract a ZIP there first). Ask the
+reviewer only for what the files cannot tell you. Then work through each section below in order.
 
 ---
 
@@ -251,19 +251,23 @@ DATA FLAGS
   ⚠️  MICRODATA LIBRARY: hh_survey_endline.dta appears Bank-produced
 
 VERDICT
-  [ ] PROCEED — package is complete enough to run
+  [x] PROCEED — package is complete enough to run
   [ ] RETURN TO AUTHORS — [list hard blockers]
 
 NOTES FOR GITHUB ISSUE
   [paste any notes here]
 ```
 
+Mark exactly one verdict with `[x]` and leave the other `[ ]`, on these two lines as written:
+the next step and `headless_review.py --status` read the verdict from them.
+
 ---
 
 ## Section F — Author Email (if items are missing)
 
 If anything is missing, draft an email using the relevant boilerplate below.
-Mix and match sections as needed.
+Mix and match sections as needed. Save it as `report/[PACKAGE_ID]/emails/1_missing_items.md`
+(all draft emails of a review go in that `emails/` folder, numbered in sending order).
 
 **Opening:**
 ```

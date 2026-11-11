@@ -75,4 +75,4 @@ PII status line for the report: `PII found (High|Medium|Low)` or `No PII found` 
 ## Proposed fix (always give one)
 Be concrete. Example: "Delete lines 1036–1077 of `programs/e2_….do` and replace them with a comment saying the
 email-to-ID crosswalk is kept with the restricted data; re-zip." Or "drop `s1aq09` from `AGSEC1.dta`".
-Say whether the fix needs the **authors** (data or code change) or can be done by the **team**.
+If only the **authors** can make the fix (a data or code change), say so in the action itself ("Ask the authors to …").

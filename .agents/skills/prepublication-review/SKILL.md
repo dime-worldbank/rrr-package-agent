@@ -28,7 +28,7 @@ Do not review README completeness, package structure or reproducibility. Only me
 problem if it is PII or it makes the JSON wrong.
 
 Produces:
-1. `report/[PACKAGE_ID]/prepublication_review_[PACKAGE_ID].md` — verdict, PII line, one table of changes
+1. `report/[PACKAGE_ID]/prepublication_review_[PACKAGE_ID].md` — verdict, PII line, one bullet list of changes
 2. A row in `report/prepublication_log.md`
 
 Bundled in this skill:
@@ -48,8 +48,10 @@ Bundled in this skill:
 
 You need two files. If either is missing, ask the reviewer for it. Do not guess another file.
 
-1. **The final ZIP** from Skill 4 Step 6 (`[PACKAGE_ID].zip`). Look in `package/[PACKAGE_ID]/` and
-   `report/[PACKAGE_ID]/` first.
+1. **The final ZIP** from Skill 4 Step 6 (`report/[PACKAGE_ID]/[PACKAGE_ID].zip`). Take its
+   SHA-256 (`shasum -a 256`) and compare it with `zip_sha256` in
+   `report/[PACKAGE_ID]/evidence/zip_check.json`; if they differ or that file is missing, say so
+   in the report: the ZIP is not the one Skill 4 built and checked.
 2. **The Metadata Editor JSON export** (`[PACKAGE_ID].json`, exported from the Metadata Editor after the
    reviewer entered the metadata). The `[PACKAGE_ID]_merge.json` written in Skill 4 Step 6b is only the
    dataset/run sections, so it will fail many J1 checks (title, producers, DataCite, tags). Use the
@@ -66,7 +68,7 @@ Review the **ZIP**, not the working package folder: the ZIP is what gets publish
 like `.git/`, `__MACOSX/` or nested archives can be in one and not the other.
 
 ```bash
-W=report/[PACKAGE_ID]/prepub
+W=report/[PACKAGE_ID]/evidence/prepub
 mkdir -p $W/_scans $W/unzipped
 unzip -l [path/to/PACKAGE_ID.zip] > $W/_scans/zip_listing.txt
 unzip -q [path/to/PACKAGE_ID.zip] -d $W/unzipped/
@@ -112,12 +114,13 @@ Write `report/[PACKAGE_ID]/prepublication_review_[PACKAGE_ID].md` from `assets/r
 and add one row to `report/prepublication_log.md`
 (`| ID | date | verdict | PII | reviewer |`; create the file with that header if it does not exist).
 
-Keep it short and actionable: verdict, PII line, one table of changes. If there is no PII, the line
+Keep it short and actionable: verdict, PII line, the SHA-256 of the ZIP you reviewed
+(`**ZIP SHA-256:** …`), one bullet list of changes (no table, no severity levels, no owners). If there is no PII, the line
 "No PII found" is all that is said about Part A. No summaries or lists of what was checked and passed.
 
 ### Verdict (one per package)
-- **Ready to go live**: no PII and no JSON issues (or only Minor ones you list).
-- **Fix JSON, then go live**: no PII; the JSON has Fix-level issues the team corrects in the Metadata Editor.
+- **Ready to go live**: no PII and no JSON issues (or only wording/format ones you list).
+- **Fix JSON, then go live**: no PII; the JSON has issues that must be corrected in the Metadata Editor first.
 - **Hold: PII**: PII of any severity. The ZIP must change before going live.
 - **Hold: data shipped**: a dataset the JSON calls restricted / limited-access / accessible / forthcoming
   is in the ZIP (not PII, but either the ZIP or the JSON must change; usually remove the file).
@@ -131,7 +134,7 @@ Then tell the reviewer the verdict and the main fixes in 3–5 lines.
 - **Hold: PII / Hold: data shipped** where the fix is the team's (delete a file, re-zip): go back to
   Skill 4 Step 6, rebuild the ZIP, then re-run this skill as `_v2`.
 - Where the fix needs the **authors** (data or code change): draft an author email as
-  `report/[PACKAGE_ID]/email_pii_[PACKAGE_ID].md` for reviewer approval. Mask the evidence in the email too.
+  `report/[PACKAGE_ID]/emails/5_pii_fix.md` for reviewer approval. Mask the evidence in the email too.
 - **Ready to go live** (or after the JSON fixes are made): the package can go live, and the reviewer can
   send the final email in Skill 4 Step 7.
 - PII of High severity, or PII in Bank-produced data: escalate to the coordinator.
@@ -144,10 +147,12 @@ Then tell the reviewer the verdict and the main fixes in 3–5 lines.
 - **Mask every piece of PII evidence** in reports, emails and chat: first letter + asterisks
   (`M***** A**`, `d******@gmail.com`, `42********`). Never paste a full value.
 - Do not edit the package, the ZIP or the JSON in this skill. Write the proposed fixes in the report.
-- Delete any temporary copies you extract (e.g. files pulled out of `.git`) when you finish.
-  Keep `report/[PACKAGE_ID]/prepub/` until the reviewer says it can go.
+- Delete any temporary copies you extract (e.g. files pulled out of `.git`) when you finish, and
+  delete `$W/unzipped/`: it is a second copy of the package, and the ZIP is still there. Keep `$W/_scans/`.
+- The report follows `assets/review_report.md` and nothing more: no list of skipped checks, no notes
+  on script output, no Assumptions section.
 - Be honest about limits. If you only sampled a file, or could not open it, and that could hide PII or
-  change the verdict, add one `**Not checked:**` line under the table.
+  change the verdict, add one `**Not checked:**` line under the list.
 - Where `references/JSON_CHECKS.md` records a team convention (data_statement template, JEL spacing,
   accepted wording variants), the convention wins over the source
   [metadata protocol](https://github.com/worldbank/wb-reproducible-research-repository/blob/main/metadata_protocol.md).

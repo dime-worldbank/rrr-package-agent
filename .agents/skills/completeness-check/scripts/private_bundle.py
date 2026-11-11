@@ -45,7 +45,7 @@ DOC_EXT = {".pdf", ".docx", ".doc", ".md"}
 DOC_PREFIXES = ("readme", "license", "das", "data_availability")
 OUTPUT_EXT = {".csv", ".tex", ".txt", ".png", ".jpg", ".jpeg", ".pdf", ".svg", ".eps", ".xlsx", ".xls"}
 SKIP_DIRS = {".git", "__pycache__", "renv", "myenv", ".venv", "venv", "node_modules", "__MACOSX"}
-CODE_DIFF_GLOBS = ["*.do", "*.ado", "*.R", "*.r", "*.Rmd", "*.py", "*.jl", "*.m"]
+CODE_DIFF_GLOBS = ["*.do", "*.ado", "*.R", "*.r", "*.Rmd", "*.qmd", "*.py", "*.jl", "*.m"]
 LARGE_CSV_ROWS = 500
 
 

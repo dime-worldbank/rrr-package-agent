@@ -138,6 +138,9 @@ Choose the most restrictive that applies:
 ### How to build the exhibit list
 
 For **each** table and figure in the paper (main section), determine its status.
+Compare the numbers first: tables from their `.csv`/`.tex`/`.txt` outputs, figures from the
+data files behind them, and image files by checksum (`shasum`). Open an image only when the
+checksums differ or no data file exists, and open each image once.
 If the appendix has more than 10 exhibits, note which 10 were randomly selected
 (see randomization code link in protocol).
 
@@ -182,6 +185,51 @@ There is a discrepancy in the coefficient for [variable]. See below:
 \end{tabular}
 \end{table}
 ```
+
+In the Markdown version the same comparison is an HTML table:
+```html
+<table>
+<tr><th>Code</th><th>Paper</th></tr>
+<tr>
+<td><img src="graphics/Figure2_code.png" width="100%"></td>
+<td><img src="graphics/Figure2_paper.png" width="100%"></td>
+</tr>
+</table>
+```
+
+### Making the comparison screenshots
+
+Every exhibit marked **Does not reproduce** gets a Code / Paper pair, in both the .md and
+the .tex. This is required, also when running headless: make the images yourself with the
+commands below, never ask the reviewer for screenshots and never reference an image that
+does not exist. Save them in `report/[PACKAGE_ID]/graphics/` as `[Exhibit]_code.png` and
+`[Exhibit]_paper.png`, with no spaces or dots in `[Exhibit]` (e.g. `FigureB2`, `TableA14`).
+
+**Paper side**: crop the exhibit from the manuscript PDF.
+1. Find its page: `pdftotext -layout manuscript.pdf - | grep -n "Figure 2"`, or loop over pages
+   with `pdftotext -f P -l P`. Use the page with the caption *and* the exhibit body, not the
+   first page that mentions it in the text.
+2. Render that page: `pdftoppm -png -r 150 -f P -l P -singlefile manuscript.pdf graphics/Figure2_page`
+3. Crop to the exhibit (caption + figure/table + notes) with Pillow:
+   `python3 -c "from PIL import Image; Image.open('graphics/Figure2_page.png').crop((x0,y0,x1,y1)).save('graphics/Figure2_paper.png')"`.
+   Get the coordinates from `pdftotext -bbox-layout -f P -l P` (points × 150/72 = pixels)
+   or by opening the page image once. Delete the `_page.png` afterwards. If cropping fails,
+   use the full page; a full page is better than no image.
+
+**Code side**: the output the package produced in the run.
+- `.png`/`.jpg`: copy it. `.pdf`: `pdftoppm -png -r 150 -singlefile out.pdf graphics/Figure2_code`.
+  `.eps`/`.svg`/`.gph` or other: convert with `sips -s format png` (macOS), `rsvg-convert`,
+  or the package's own software (e.g. Stata `graph export`, R `ggsave`), whichever is installed.
+- Tables: a small Code vs Paper table of the cells that differ is enough (numbers copied
+  from the output file). Add the screenshot pair only when the layout itself differs
+  (missing rows/columns); then render the output to PNG or crop it from a PDF the
+  package produced.
+- If the code produced no file for the exhibit, the status is **Could not be verified**,
+  not Does not reproduce, and no pair is needed.
+
+Open each finished pair once to check that the crop shows the right exhibit and the
+difference is visible, then describe the difference in one or two sentences under it
+(e.g. "The confidence bands in the code output are wider after 2015.").
 
 **Appendix note** (if >10 exhibits, sampled):
 ```latex
@@ -354,13 +402,41 @@ python .agents/skills/create-report/scripts/md_to_pdf.py report/[PACKAGE_ID]/ver
 This writes `report/[PACKAGE_ID]/reproducibility_report_[PACKAGE_ID].pdf` using headless
 Chrome/Edge. The Contents links stay clickable, and YAML front matter is ignored. If the
 PDF is open in a viewer the script stops; ask the reviewer to close it and rerun.
-Read the PDF afterwards to check the layout.
+Check the layout once afterwards: run `pdfinfo` for the page count and `pdftotext -layout`
+for the text, and open only the pages with figures or tables as images (Read with `pages`),
+one time each.
 
 ---
 
 ## Done with Skill 3?
 
 - Save the compiled PDF as `reproducibility_report_[PACKAGE_ID].pdf`
-- If the package **did not reproduce**: send the report to authors now (see email
-  templates in Skill 1 / communication_template.md)
+- If the package **did not reproduce**: draft the email that sends the report to the authors as
+  `report/[PACKAGE_ID]/emails/3_report_to_authors.md`, for the reviewer to send now, from this
+  template. One bullet per exhibit that does not reproduce or could not be verified, each in
+  one plain sentence; the detail stays in the report.
+
+  ```
+  Dear [Author Name],
+
+  I hope you are well. I am writing to share our reproducibility review of
+  your paper, "[Paper Title]."
+
+  We found that the paper is not fully reproducible with the package
+  provided. Here is a summary of our findings:
+
+  - [Exhibit: what differs between the paper and the code output]
+
+  You will find more details in the attached report.
+
+  I am happy to set up a call to discuss the findings or answer any questions.
+
+  We appreciate your commitment to reproducible research and look forward
+  to your resubmission.
+
+  Best regards,
+  [Your Name]
+  PRWP Reproducibility Verification Team
+  reproducibility@worldbank.org
+  ```
 - If the package **reproduced**: proceed to **Skill 4 — Prepare Publication**

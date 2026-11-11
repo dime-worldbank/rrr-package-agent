@@ -117,20 +117,24 @@ plus the runtime and stability the reviewer reports. Never ask for data files or
 
 ## Step 2 — Initialize Git
 
-Before touching anything else, set up local Git tracking.
+Before touching anything else, set up local Git tracking with the helper in this skill
+folder. Run it from the `rrr-package-agent` folder:
 
 ```bash
-cd [path/to/package]
-git init
-# Add a .gitignore (see note below)
-git add .
-git commit -m "initial-package"
+S=.agents/skills/run-package/scripts/track_package.py
+python $S init --id [PACKAGE_ID] --raw-data [raw data folder, relative to the package]
 ```
 
-**`.gitignore` to add (from the protocol, §2).** Git tracks code and text/image outputs
+This tracks the **whole** `package/[PACKAGE_ID]/` folder (one repo for Skills 2, 3 and 4),
+writes the `.gitignore` below and commits `initial-package`. The history is stored in
+`report/[PACKAGE_ID]/evidence/package.git`, not in the package: the package only gets a small
+`.git` pointer file, so `git log` and `git diff` still work there and nothing has to be deleted
+before zipping. Do not run `git init` by hand, and never delete or move that `.git` file.
+
+**The `.gitignore` it writes (from the protocol, §2).** Git tracks code and text/image outputs
 (`.csv`, `.tex`, `.txt`, `.png`, `.jpg`) so changes between runs show up as diffs. It ignores
 all binary files, since Git cannot show meaningful diffs for them, and the raw data folder.
-Adapt the raw data folder name to the package (`raw_data`, `data`, `Data`, `raw`, …).
+Give the raw data folder with `--raw-data` (`raw_data`, `data`, `Data/Raw`, …; repeatable).
 ```
 ## This .gitignore is for reproducibility packages to track changes in outputs only
 
@@ -183,15 +187,22 @@ Thumbs.db
 2. **Change only the top-level directory path** in the main script. Do not make
    any other changes yet.
 
-3. **Run the package** from start to finish via the main script.
-
-4. **Document every error and fix** as you go — see Run Log format below.
-
-5. When the run completes (or if you fix it and rerun):
+3. **Commit that change on its own**, then **run the package** from start to finish via the
+   main script, through the helper:
    ```bash
-   git add .
-   git commit -m "first-run"
+   python $S commit --id [PACKAGE_ID] --label fix-root-path --note "main.do line 12: root path"
+   python $S run --id [PACKAGE_ID] --n 1 --log main.log -- stata-mp -b do main.do
+   # R: -- Rscript main.R        Python: -- python main.py        (--cwd if the script is in a subfolder)
    ```
+   `run` measures the start, end and runtime, saves what the script printed and its log, writes
+   a SHA-256 manifest of every file (`run1_hashes.csv`, including the binary files Git ignores)
+   and commits `first-run`. All of it goes to `report/[PACKAGE_ID]/evidence/`. Use the runtime
+   from `run_times.csv` in the Run Log; do not estimate it.
+
+4. **Document every error and fix** as you go — see Run Log format below. If the run fails,
+   nothing is committed: fix the cause, commit the fix on its own
+   (`commit --label fix-[what] --note "[file:line, what and why]"`) and run `--n 1` again.
+   One commit per fix, so each code change can be checked with `git show`.
 
 **Common errors and fixes to document:**
 - Missing package → install it, note it
@@ -208,24 +219,21 @@ Thumbs.db
 > exceeded 24h threshold" in the run log.
 
 1. **Delete outputs again** (same as Step 3, point 1)
-2. **Run the package again** without any changes
-3. Commit:
+2. **Run the package again** without any changes: the same `run` command with `--n 2`
+   (it commits `second-run`, also when the outputs are identical).
+3. **Check for differences:**
    ```bash
-   git add .
-   git commit --allow-empty -m "second-run"   # --allow-empty: identical outputs still get a commit
+   python $S compare --id [PACKAGE_ID]       # run 1 vs run 2 by SHA-256, binary files included
+   git -C package/[PACKAGE_ID] diff HEAD~1 HEAD -- "*.csv" "*.txt" "*.tex"   # what changed, for text outputs
    ```
-4. **Check for differences:**
-   ```bash
-   git diff HEAD~1 HEAD -- "*.csv" "*.txt" "*.tex" "*.png" "*.jpg"   # second-run vs first-run commit
-   ```
-   Or in GitHub Desktop: compare the two commits visually.
+   `compare` writes `evidence/run_comparison.csv`. Or in GitHub Desktop: compare the two commits visually.
 
 **Interpreting differences:**
 | File type | Change | Verdict |
 |-----------|--------|---------|
 | `.csv`, `.txt`, `.tex` | Values changed | ❌ UNSTABLE — investigate |
 | `.csv`, `.txt`, `.tex` | No change | ✅ Stable |
-| `.png`, `.jpg` | File changed | Check visually — may be metadata only |
+| `.png`, `.jpg` | File changed | `compare` already checked the checksums; open the image only if they differ — may be metadata only |
 | `.dta`, `.xlsx` | Changed | ⚠️ May be timestamps — not necessarily unstable |
 | `.dta`, `.xlsx` | No change | ✅ Stable |
 
@@ -256,26 +264,29 @@ Stability:        _______________  (Stable across 2 runs / Unstable — see note
 
 ## Step 6 — Send Confirmation Email to Authors
 
-Once the package runs (even if with minor fixes), send this email:
+Once the package runs (even if with minor fixes), draft this email for the reviewer to send,
+saved as `report/[PACKAGE_ID]/emails/2_run_confirmation.md`:
 
 ```
 Dear [Author Name],
 
 I hope this message finds you well. My name is [Your Name], and I am a
-member of the PRWP Reproducibility Verification team. I am writing to
-inform you that we have received the reproducibility package for your
-paper "[Paper Title]."
+member of the PRWP Reproducibility Verification team. We have received
+the reproducibility package for your paper "[Paper Title]." We were able
+to run the code after making the following adjustments:
 
-We were able to run the code after: [list any changes made, e.g.,
-"adjusting the root file path and installing the outreg2 package"].
+- [one bullet per change, from "Changes made to code" in the Run Log]
 
-We are now moving forward with the verification process and aim to
-provide you with the review results by [date ~2 weeks from now]. The
-review will include a detailed reproducibility report and, assuming all
-criteria are met, the publication of your package in our Reproducible
-Research Repository (https://reproducibility.worldbank.org/).
+[If no change was needed, replace the last sentence and the list with:
+"We were able to run the code without any changes."]
 
-Should you have any questions, please do not hesitate to contact us.
+We are now moving forward with the verification and aim to share the
+results by [date 2 weeks from today, e.g. November 25, 2026]. You will
+receive a detailed reproducibility report and, if all criteria are met,
+your package will be published in our Reproducible Research Repository
+(https://reproducibility.worldbank.org/).
+
+If you have any questions, please don't hesitate to contact us.
 
 Best regards,
 [Your Name]
@@ -328,5 +339,8 @@ NEXT STEP: Skill 3 — Create Report
 
 ## Done with Skill 2?
 
-- Paste the Run Log into the **GitHub issue** (commit: `second-run` or `first-run`)
+- Save the Run Log as `report/[PACKAGE_ID]/run_log.md` and paste it into the **GitHub issue**
+  (commit: `second-run` or `first-run`)
+- Run `python $S changes --id [PACKAGE_ID]` to write `evidence/AI_CHANGES.md`: every code change
+  with its commit and file:line, for the reviewer to check
 - Move to **Skill 3 — Create Report**
