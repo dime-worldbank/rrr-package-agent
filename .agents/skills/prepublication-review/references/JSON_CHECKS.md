@@ -8,6 +8,7 @@ is in the zip, and with the reproducibility report.
 Source: [metadata_protocol.md](https://github.com/worldbank/wb-reproducible-research-repository/blob/main/metadata_protocol.md) (MP), plus the team conventions noted below.
 
 Levels: **Fix** = wrong or contradicts something; must be corrected before going live. **Minor** = wording/format.
+The levels are for deciding the verdict and the order of the changes. Do not print them in the report.
 
 ## J1. Fields vs protocol (auto)
 | # | Check | Level |
@@ -63,5 +64,5 @@ Levels: **Fix** = wrong or contradicts something; must be corrected before going
 | J4.4 | Run time matches the report | Minor |
 
 ## How to report
-Put only the items that are not PASS in the report's single Changes table (see `assets/review_report.md`), with the
+Put only the items that are not PASS in the report's single Changes list (bullets; see `assets/review_report.md`), with the
 exact new value. Do not list passed checks, false positives from the script, or "not in scope" notes.

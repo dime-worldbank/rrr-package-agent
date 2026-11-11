@@ -1,0 +1,324 @@
+<meta charset="utf-8">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>RRR Review Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: three columns, same as the Reply Desk: what to run (rail), package details (form),
+   then the command to copy and what to check once it has run. */
+:root{
+  --ground:#EEF2F0; --surface:#FFFFFF; --sunk:#E3E9E6; --ink:#15201C; --muted:#56635D;
+  --line:#CFD8D4; --accent:#1C6A51; --accent-ink:#FFFFFF; --accent-soft:#DCEDE5;
+  --gap:#F6E3B4; --gap-ink:#6B4A00; --stop:#F3D9D4; --stop-ink:#8A2A1E; --code:#F4F7F5;
+  --display:"Schibsted Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Sans 3",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1412; --surface:#171E1B; --sunk:#1F2824; --ink:#E3EAE6; --muted:#9AA8A1;
+    --line:#2D3833; --accent:#6CC3A0; --accent-ink:#0B1A14; --accent-soft:#1D3A2F;
+    --gap:#4A3A12; --gap-ink:#F4D58A; --stop:#45211C; --stop-ink:#F2B8AE; --code:#111815; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1412; --surface:#171E1B; --sunk:#1F2824; --ink:#E3EAE6; --muted:#9AA8A1;
+  --line:#2D3833; --accent:#6CC3A0; --accent-ink:#0B1A14; --accent-soft:#1D3A2F;
+  --gap:#4A3A12; --gap-ink:#F4D58A; --stop:#45211C; --stop-ink:#F2B8AE; --code:#111815; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+[hidden]{display:none!important}
+.wrap{max-width:1320px;margin:0 auto;padding-block:22px 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:20px}
+h1{font-family:var(--display);font-weight:700;font-size:1.6rem;letter-spacing:-.01em;margin:0}
+h1 span{color:var(--accent)}
+.top p{margin:0;color:var(--muted);max-width:64ch}
+.grid{display:grid;grid-template-columns:240px minmax(0,320px) minmax(0,1fr);gap:20px;align-items:start}
+.grid>*{min-width:0}
+@media (max-width:1080px){.grid{grid-template-columns:230px minmax(0,1fr)}.main{grid-column:1/-1}}
+@media (max-width:700px){.grid{grid-template-columns:1fr}}
+/* rail */
+nav.rail{display:flex;flex-direction:column;gap:18px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:700px){nav.rail{position:static}}
+.group h2{font-family:var(--display);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 6px 10px}
+.group ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.tpl{width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font:inherit;padding:7px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:9px}
+.tpl:hover{background:var(--sunk)}
+.tpl[aria-current="true"]{background:var(--accent);color:var(--accent-ink)}
+.num{font-family:var(--mono);font-size:.78rem;width:1.5em;height:1.5em;border-radius:50%;border:1.5px solid currentColor;display:inline-flex;align-items:center;justify-content:center;flex:none}
+/* form */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.fields{padding:16px;display:flex;flex-direction:column;gap:14px}
+.fields h3{font-family:var(--display);font-size:1.05rem;margin:0}
+.fields .when{margin:-8px 0 0;color:var(--muted);font-size:.9rem}
+label.f{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.88rem}
+label.f small{font-weight:400;color:var(--muted)}
+input[type=text]{font:inherit;font-weight:400;color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%}
+input.mono{font-family:var(--mono);font-size:.88rem}
+input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:.92rem}
+.check input{margin-top:4px;accent-color:var(--accent)}
+.check small{display:block;color:var(--muted)}
+.sep{border-top:1px dashed var(--line);padding-top:12px}
+.clear{align-self:flex-start;background:none;border:0;color:var(--muted);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer;padding:0}
+/* main */
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.status{font-size:.85rem;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--gap);color:var(--gap-ink)}
+.pill.done{background:var(--accent-soft);color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:inherit;font-weight:600;font-size:.88rem;padding:6px 12px;border:0;background:var(--surface);color:var(--ink);cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.body{padding:18px 22px 24px;display:flex;flex-direction:column;gap:22px}
+.body h3{font-family:var(--display);font-size:1.25rem;margin:0;text-wrap:balance}
+.lede{margin:4px 0 0;color:var(--muted);max-width:70ch}
+.sec{display:flex;flex-direction:column;gap:8px}
+.sec h4{font-family:var(--display);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0}
+.cmd{border:1px solid var(--line);border-radius:8px;background:var(--code);overflow:hidden}
+.cmd .cap{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px 6px 12px;border-bottom:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+.cmd pre{margin:0;padding:12px;font-family:var(--mono);font-size:.86rem;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink)}
+.cmd.say pre{font-family:var(--body);font-size:1rem}
+button.b{font:inherit;font-weight:600;font-size:.85rem;border-radius:6px;padding:4px 12px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);flex:none}
+button.b:hover{filter:brightness(.95)}
+.v-fill{background:var(--accent-soft);border-radius:3px;padding:0 2px}
+.v-gap{background:var(--gap);color:var(--gap-ink);border-radius:3px;padding:0 3px}
+ul.plain{margin:0;padding-left:1.2em;max-width:76ch}
+ul.plain li{margin-bottom:.3em}
+dl.files{margin:0;display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:8px 16px;max-width:86ch}
+dl.files dt{font-family:var(--mono);font-size:.82rem;overflow-wrap:anywhere;padding-top:2px}
+dl.files dd{margin:0}
+@media (max-width:560px){dl.files{grid-template-columns:1fr;gap:2px}dl.files dd{margin-bottom:8px}}
+code{font-family:var(--mono);font-size:.86em;background:var(--sunk);border-radius:3px;padding:0 3px;overflow-wrap:anywhere}
+.stop{background:var(--stop);color:var(--stop-ink);border-radius:8px;padding:10px 14px;max-width:86ch}
+.stop ul{margin:0;padding-left:1.2em}
+.mail{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:8px 16px;max-width:86ch;margin:0}
+.mail dt{font-family:var(--mono);font-size:.82rem;overflow-wrap:anywhere;padding-top:2px}
+.mail dd{margin:0}
+@media (max-width:560px){.mail{grid-template-columns:1fr;gap:2px}.mail dd{margin-bottom:8px}}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:8px 16px;border-radius:6px;font-weight:600;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>RRR <span>Review Desk</span></h1>
+    <p>Fill in the package once, pick what to run, and copy the command or the chat message. Each step lists what to open and check when it finishes. The package shown is a sample; use “Clear package details” to start fresh.</p>
+  </header>
+  <div class="grid">
+    <nav class="rail" id="rail" aria-label="What to run"></nav>
+    <section class="panel"><div class="fields" id="fields">
+      <h3>Package details</h3>
+      <p class="when">The same details serve every step. Only the first run needs the title.</p>
+      <label class="f" for="f-id">Package ID <small>The full ID, or just its number</small>
+        <input id="f-id" class="mono" type="text" autocomplete="off" placeholder="RR_KEN_2026_585"></label>
+      <label class="f" for="f-title">Paper title <small>Needed on the first run; remembered after that</small>
+        <input id="f-title" type="text" autocomplete="off"></label>
+      <label class="check" for="f-private"><input id="f-private" type="checkbox">
+        <span>Private data<small>Any restricted, limited-access or forthcoming file. You run the code on the secure machine; the AI never sees the data.</small></span></label>
+      <div class="sep"></div>
+      <label class="f" for="f-me">Your name <small>Leave empty to use your Git name. Remembered on this device</small>
+        <input id="f-me" type="text" autocomplete="off"></label>
+      <button type="button" class="clear" id="clearBtn">Clear package details</button>
+    </div></section>
+    <section class="panel main" aria-label="What to run and what to check">
+      <div class="bar">
+        <div class="status" id="status"></div>
+        <div class="seg" role="group" aria-label="Where you run it">
+          <button type="button" id="m-term" aria-pressed="true">Terminal</button>
+          <button type="button" id="m-chat" aria-pressed="false">Agent chat</button>
+        </div>
+      </div>
+      <div class="body" id="body"></div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Each view: what the reviewer runs (cmds), what the AI does, and what the reviewer opens,
+   checks and sends afterwards. {R} = report/[ID], {P} = package/[ID], {ID} = the package ID. */
+const DESK = "RRI Reply Desk";
+const V = [
+ {group:"Run", id:"all", name:"Whole review",
+  lede:"Runs the five steps one after another, each in a fresh session, and stops by itself when something needs you. Nothing is sent, pushed or published.",
+  term:v=>[["Run all five steps", run(v,"")]],
+  chat:v=>[["Say this in the agent chat", `Run the whole review of ${v.id} headless.${v.titleSay}${v.private?" It has private data.":""}`]],
+  before:v=>v.private
+    ?["On the secure machine, build the bundle the AI works from (no data in it): <code>python .agents/skills/completeness-check/scripts/private_bundle.py prerun --package \"[package folder]\" --data [data folder]</code>",
+      "The run stops before step 2. Run the package twice on the secure machine, then the same command with <code>postrun</code> and <code>--outputs [outputs folder]</code>, and resume with “Where it stands”."]
+    :["Copy the submission into <code>{P}/</code>. A ZIP is fine; step 1 extracts it."],
+  check:[["{R}/ai_use_summary.md","Start here when it ends: one line per step with what the AI found, and the open items for you."],
+         ["{R}/evidence/AI_CHANGES.md","Every file the AI changed in the package, with commit and file:line."],
+         ["{R}/emails/","The drafts, numbered in sending order. You send them."]],
+  stops:["The completeness verdict is RETURN TO AUTHORS (stops before step 2).",
+         "An exhibit does not reproduce (always stops before step 4).",
+         "A step is blocked, crashes or runs past 60 minutes. Step 2 has no limit while it runs the code."]},
+ {group:"Run", id:"status", name:"Where it stands",
+  lede:"Shows each step's result and what is left for you, from the files already written. It runs nothing and costs nothing. Resume starts at the first unfinished step.",
+  term:v=>[["See where the review stands", base(v)+" --status"],["Resume from the first unfinished step", run(v,"--steps next")]],
+  chat:v=>[["Ask where it stands", `Where does the review of ${v.id} stand?`],["Resume", `Run the rest of ${v.id} headless.`]],
+  check:[["{R}/headless/BLOCKED_stepN.md","Why a step did not run or finish, and what you must do before resuming."],
+         ["{R}/headless/token_usage.md","Turns, tokens, cost and minutes per step."]]},
+ {group:"One step", n:1, id:"s1", name:"Completeness check",
+  lede:"Checks the manuscript, README, data availability statement and raw vs. processed data, and flags Bank-produced or privately shared data.",
+  say:"completeness check",
+  before:v=>v.private?["Run <code>private_bundle.py prerun</code> on the secure machine first; the AI works from the hash report and variable inventory."]:["The submission is in <code>{P}/</code>."],
+  check:[["{R}/completeness_check.md","The verdict (PROCEED or RETURN TO AUTHORS) and whether you agree with it. Then every ❌ and ⚠: processed data, the Microdata Library flag, data shared through personal channels."],
+         ["{R}/evidence/assumptions.md","What the AI assumed or could not check in this step."]],
+  mail:[["1_missing_items.md","Only when items are missing. Matches “Package incomplete” in the "+DESK+"."]],
+  stops:["Verdict RETURN TO AUTHORS: send the email, and run this step again on the resubmission."]},
+ {group:"One step", n:2, id:"s2", name:"Run package",
+  lede:"Sets up a clean environment, runs the package twice under local Git, times both runs and compares the outputs by SHA-256.",
+  say:"run the package",
+  before:v=>v.private?["Run the package twice on the secure machine, then <code>private_bundle.py postrun</code>. The AI does not run the code; it writes the run log from your files."]:["Step 1 says PROCEED.","The package's software (Stata, R, Python) is installed on this machine."],
+  check:[["{R}/run_log.md","Dependencies installed, changes made to the code, runtimes, stability."],
+         ["{R}/evidence/AI_CHANGES.md","Each code change, one commit per fix. To see them yourself: <code>git -C {P} diff initial-package..HEAD</code>"],
+         ["{R}/evidence/run_comparison.csv","Outputs that differ between run 1 and run 2. A differing <code>.csv</code>, <code>.tex</code> or <code>.txt</code> means unstable: talk to the coordinator."],
+         ["{R}/evidence/run_times.csv","Start, end and seconds of every run, measured by the script."]],
+  mail:[["2_run_confirmation.md","Matches “Package received, first run OK” in the "+DESK+". Check the date and the list of changes."]],
+  stops:["The code fails and the AI cannot fix it without changing results.","Private data and <code>hash_comparison.csv</code> is not in the bundle yet."]},
+ {group:"One step", n:3, id:"s3", name:"Create report",
+  lede:"Compares every exhibit in the manuscript with the outputs of the run and writes the reproducibility report (Markdown, LaTeX and PDF).",
+  say:"create the report",
+  before:()=>["Step 2 wrote <code>{R}/run_log.md</code>."],
+  check:[["{R}/reproducibility_report_{ID}.pdf","Open the PDF. Check every exhibit that is not “Reproduced” against the paper, and spot-check a few that are."],
+         ["{R}/graphics/","Code and Paper images for each exhibit that does not reproduce: the right exhibit, and the difference is visible."],
+         ["{R}/verification_report_{ID}.md","The editable version. After editing it, export again: <code>python .agents/skills/create-report/scripts/md_to_pdf.py {R}/verification_report_{ID}.md</code>"]],
+  mail:[["3_report_to_authors.md","Only when an exhibit does not reproduce. Matches “Did not reproduce” in the "+DESK+". Attach the report."]],
+  stops:["Any exhibit does not reproduce: the review ends here until the resubmission, which starts again at step 1."]},
+ {group:"One step", n:4, id:"s4", name:"Prepare publication",
+  lede:"Adds the license, converts the README to PDF, hashes the data, builds the ZIP from the tracked package and drafts the metadata JSON.",
+  say:"prepare the package for publication",
+  before:()=>["Every exhibit in the report reproduces, and the report PDF exists."],
+  check:[["{R}/{ID}.zip","README.pdf, LICENSE.txt, WB-IGO-RIDER.txt, the report and data_hash_report.csv at the top level; code and open data under “Reproducibility package/”. No restricted data inside."],
+         ["{R}/evidence/zip_check.json","The ZIP matches the last commit. “excluded” lists what was left out. A headless run never deletes data; delete those files yourself if they must go."],
+         ["{R}/{ID}_merge.json","Datasets, software, runtime and instructions. Paste it into the Reproducibility File Generator app, then Merge &amp; Preview."],
+         ["{R}/evidence/AI_CHANGES.md","The step4 commits: structure, license, README, hash report, deletions."]],
+  stops:["The report shows an exhibit that does not reproduce, or the report PDF is missing."]},
+ {group:"One step", n:5, id:"s5", name:"Pre-publication review",
+  lede:"Scans the final ZIP for personally identifiable information and checks the Metadata Editor JSON against the protocol, the ZIP and the report.",
+  say:"pre-publication review",
+  before:()=>["Enter the metadata, export the full JSON from the Metadata Editor and save it as <code>{R}/{ID}.json</code>. Without it the AI checks the draft merge JSON only and the verdict is provisional."],
+  check:[["{R}/prepublication_review_{ID}.md","The verdict, the PII line, and the list of fixes. “Not checked” names anything the AI skipped."],
+         ["ZIP SHA-256","The value in the review equals <code>zip_sha256</code> in <code>evidence/zip_check.json</code>, so the ZIP reviewed is the ZIP you publish."]],
+  mail:[["4_final_published.md","Send after the package is live. Matches “Reproduced” in the "+DESK+" (or “Reproduced, awaiting DECDG”). Add the catalog link and attach the report."],
+        ["5_pii_fix.md","Only when the authors must change data or code."]],
+  stops:["Hold: PII, or a restricted dataset is in the ZIP. Rebuild the ZIP with step 4 and run this step again."]},
+ {group:"Finish", id:"summary", name:"AI use summary",
+  lede:"One block of Markdown for the package's GitHub issue: status, AI cost, a checklist with one line per step, open items and time. A headless run writes it at the end; after a chat review, write it with the command below.",
+  term:v=>[["After a chat review", `python scripts/ai_summary.py --id ${v.id} --mode chat`+(v.title?` --title ${q(v.title)}`:"")+(v.me?` --reviewer ${q(v.me)}`:"")]],
+  chat:v=>[["Say this in the agent chat", `Write the AI use summary for ${v.id}.`]],
+  check:[["{R}/ai_use_summary.md","Tick the boxes yourself after checking each step, fill in your time with AI and your estimate without it, add your comments, then paste it into the GitHub issue."]]},
+ {group:"Finish", id:"stops", name:"When it stops",
+  lede:"A headless run ends with exit code 1 and tells you why. Fix the cause, then resume from “Where it stands”.",
+  table:[["BLOCKED_stepN.md in {R}/headless/","Read it: it says what is missing and what to do. Earlier attempts are kept under time-stamped names."],
+         ["RETURN TO AUTHORS","Send <code>emails/1_missing_items.md</code>. When the authors resubmit, replace the package and run step 1 again."],
+         ["Does not reproduce","Check the report and send <code>emails/3_report_to_authors.md</code>. Steps 4 and 5 wait for a resubmission that reproduces."],
+         ["timeout after 60 min","A stalled session. Run the step again; add <code>--timeout-min 0</code> for a step that really needs longer."],
+         ["no result / error","Open <code>{R}/headless/stepN_[skill].jsonl</code>, the full transcript, then run the step again."],
+         ["! denied: …","The AI was refused a command (network, push, sudo are always refused). Check whether the step still finished."],
+         ["The Git repo has a remote","The package history must stay local. Remove the remote and check that nothing was pushed."]],
+  extra:["<code>--model claude-sonnet-5-5</code> runs the steps on another model.",
+         "<code>--max-budget 5</code> stops a step that would spend more than that many dollars.",
+         "<code>--keep-going</code> continues after a blocked or failed step. It never continues past a package that does not reproduce."]}
+];
+
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const vals={id:"RR_COL_2026_755",title:"Credit Guarantees and Firm Employment in Colombia",private:false,me:store.get("rrr-me")||""};
+let cur=V[0], mode=store.get("rrr-mode")==="chat"?"chat":"term";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const GAP_ID="\u0001", GAP_TITLE="\u0002";            // placeholders for empty fields
+const q=s=>s===GAP_TITLE?`"${s}"`:'"'+s.replace(/(["\\$`])/g,"\\$1")+'"';
+const base=v=>"python scripts/headless_review.py "+v.id;
+const run=(v,flags)=>base(v)+(flags?" "+flags:"")+(v.title?" --title "+q(v.title):"")+(v.me?" --reviewer "+q(v.me):"")+(v.private?" --private":"");
+
+function view(needTitle){
+  const id=vals.id.trim(), title=vals.title.trim();
+  return {id:id||GAP_ID, title:title||(needTitle?GAP_TITLE:""), me:vals.me.trim(), private:vals.private,
+          titleSay:title?` Title: "${title}".`:(needTitle?` Title: "${GAP_TITLE}".`:"")};
+}
+function cmds(){
+  const first=cur.id==="all"||cur.id==="s1", v=view(first);
+  if(cur.n){
+    return mode==="term"
+      ?[[`Run step ${cur.n} only, in its own session`, run(v,"--steps "+cur.n)]]
+      :[["Say this in the agent chat", `Step ${cur.n} for ${v.id}: ${cur.say}.${first?v.titleSay:""}`]];
+  }
+  return cur[mode]?cur[mode](v):[];
+}
+/* paths: report/[ID] etc. A bare number is enough for the command but not for a folder name */
+function paths(s){
+  const id=vals.id.trim(), full=/_/.test(id)?id:"[PACKAGE_ID]";
+  return s.replace(/\{R\}/g,"report/"+esc(full)).replace(/\{P\}/g,"package/"+esc(full)).replace(/\{ID\}/g,esc(full));
+}
+function paint(text,how){   // how: "view" marks filled and missing values, "text" is what gets copied
+  if(how==="text")return text.replace(GAP_ID,"[package ID]").replace(GAP_TITLE,"[paper title]");
+  let h=esc(text);
+  for(const val of [vals.id.trim(),vals.title.trim(),vals.me.trim()])
+    if(val)h=h.split(esc(val)).join(`<span class="v-fill">${esc(val)}</span>`);
+  return h.replace(GAP_ID,'<span class="v-gap">package ID</span>').replace(GAP_TITLE,'<span class="v-gap">paper title</span>');
+}
+
+function buildRail(){
+  const groups=[...new Set(V.map(t=>t.group))];
+  $("#rail").innerHTML=groups.map(g=>`<div class="group"><h2>${g}</h2><ul>${V.filter(t=>t.group===g).map(t=>
+    `<li><button type="button" class="tpl" data-id="${t.id}" aria-current="${t===cur}">${t.n?`<span class="num" aria-hidden="true">${t.n}</span>`:""}${t.name}</button></li>`).join("")}</ul></div>`).join("");
+  $("#rail").querySelectorAll(".tpl").forEach(b=>b.onclick=()=>{cur=V.find(t=>t.id===b.dataset.id);buildRail();update();
+    if(matchMedia("(max-width:700px)").matches)$(".main").scrollIntoView({behavior:"smooth"})});
+}
+let copies=[];
+function update(){
+  const list=cmds(); copies=list.map(c=>paint(c[1],"text"));
+  const gaps=[];
+  if(list.some(c=>c[1].includes(GAP_ID)))gaps.push("Package ID");
+  if(list.some(c=>c[1].includes(GAP_TITLE)))gaps.push("Paper title");
+  $("#status").innerHTML=gaps.length?`<span class="pill">${gaps.length} to fill</span> ${gaps.join(", ")}`
+    :`<span class="pill done">Ready</span> ${mode==="term"?"Run from the rrr-package-agent folder":"Paste into the agent chat opened on rrr-package-agent"}`;
+  $("#m-term").setAttribute("aria-pressed",mode==="term");$("#m-chat").setAttribute("aria-pressed",mode==="chat");
+  const sec=(title,inner)=>inner?`<div class="sec"><h4>${title}</h4>${inner}</div>`:"";
+  const ul=a=>a&&a.length?`<ul class="plain">${a.map(x=>`<li>${paths(x)}</li>`).join("")}</ul>`:"";
+  const before=cur.before?cur.before(vals):null;
+  let h=`<div><h3>${cur.n?`Step ${cur.n}: `:""}${cur.name}</h3><p class="lede">${cur.lede}</p></div>`;
+  h+=sec(mode==="term"?"Run":"Say", list.map((c,i)=>
+    `<div class="cmd${mode==="chat"?" say":""}"><div class="cap"><span>${c[0]}</span><button type="button" class="b" data-i="${i}">Copy</button></div><pre>${paint(c[1],"view")}</pre></div>`).join(""));
+  h+=sec("Before you run it",ul(before));
+  if(cur.check)h+=sec(cur.n?"When it finishes, open and check":"Then open",
+    `<dl class="files">${cur.check.map(([f,d])=>`<dt>${paths(f)}</dt><dd>${paths(d)}</dd>`).join("")}</dl>`);
+  if(cur.mail)h+=sec("Draft email to review and send",
+    `<dl class="mail">${cur.mail.map(([f,d])=>`<dt>emails/${f}</dt><dd>${d}</dd>`).join("")}</dl>`);
+  if(cur.table)h+=sec("What you see, and what to do",
+    `<dl class="files">${cur.table.map(([f,d])=>`<dt>${paths(f)}</dt><dd>${paths(d)}</dd>`).join("")}</dl>`);
+  if(cur.stops)h+=sec("It stops here when",`<div class="stop"><ul>${cur.stops.map(x=>`<li>${x}</li>`).join("")}</ul></div>`);
+  if(cur.extra)h+=sec("Options you can add to any run",ul(cur.extra));
+  $("#body").innerHTML=h;
+  $("#body").querySelectorAll("button.b").forEach(b=>b.onclick=()=>copy(copies[+b.dataset.i],mode==="term"?"Command":"Message",gaps.length));
+}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),2200)}
+async function copy(text,label,gaps){
+  const warn=gaps?` (${gaps} field${gaps>1?"s":""} still empty)`:"";
+  try{await navigator.clipboard.writeText(text);return toast(label+" copied"+warn)}catch(e){}
+  const box=document.createElement("textarea");box.value=text;box.style.cssText="position:fixed;left:-9999px;top:0";
+  document.body.appendChild(box);box.select();
+  let ok=false;try{ok=document.execCommand("copy")}catch(e){}
+  box.remove();
+  toast(ok?label+" copied"+warn:"Copy was blocked. Select the text and press Ctrl+C.");
+}
+function bind(){
+  const map={"f-id":"id","f-title":"title","f-me":"me"};
+  for(const [id,k] of Object.entries(map)){const el=$("#"+id);el.value=vals[k];
+    el.oninput=()=>{vals[k]=el.value;if(k==="me")store.set("rrr-me",el.value);update()}}
+  $("#f-private").checked=vals.private;
+  $("#f-private").onchange=e=>{vals.private=e.target.checked;update()};
+  $("#clearBtn").onclick=()=>{vals.id="";vals.title="";vals.private=false;bind();update();$("#f-id").focus()};
+  $("#m-term").onclick=()=>{mode="term";store.set("rrr-mode",mode);update()};
+  $("#m-chat").onclick=()=>{mode="chat";store.set("rrr-mode",mode);update()};
+}
+buildRail();bind();update();
+</script>
