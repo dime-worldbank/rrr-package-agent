@@ -10,6 +10,7 @@ one saved in report/[ID]/, so nothing depends on chat history.
 
     python scripts/headless_review.py 806 --status        # where the review stands; runs nothing
     python scripts/headless_review.py 806 --steps next    # resume from the first unfinished step
+    python scripts/headless_review.py 806 --outputs-only  # report only, from outputs you produced (no run log)
     python scripts/headless_review.py 806 --steps 3       # one step
     python scripts/headless_review.py 806 --steps 3-5     # a range
 
@@ -256,6 +257,8 @@ def fill_details(args, outdir):
     pick("software", (detect_software(REPO / "package" / args.id), "detected"))
     if saved.get("private") and not args.private:
         args.private, src["private"] = True, "last run"
+    if saved.get("outputs_only"):
+        args.outputs_only = True
     if not args.software:
         args.software, src["software"] = "not stated: identify it from the code files", "not detected"
 
@@ -274,7 +277,8 @@ def print_status(args, s):
     width = max(len(label) for _, _, label in ai_summary.SKILLS)
     for n, _, label in ai_summary.SKILLS:
         state = s["state"][n]
-        mark = "done" if state == "Completed" else "--" if state == "Not run" else "!!"
+        mark = ("done" if state == "Completed" else "--" if state == "Not run"
+                else "skip" if state.startswith("Skipped") else "!!")
         note = s["did"].get(n, "")
         if state not in ("Completed", "Not run"):
             note = (note + " | " if note else "") + state
@@ -293,6 +297,23 @@ def print_status(args, s):
               "step 1 with the resubmission.")
     else:
         print("\nAll five steps have run. Check ai_use_summary.md and paste it into the GitHub issue.")
+
+
+# Step 3 without step 2: the reviewer ran the package themselves, so there is no run log.
+OUTPUTS_ONLY_STEP3 = """Read .agents/skills/create-report/SKILL.md in full and follow its section "Without a
+run log" for package {id}. There is no report/{id}/run_log.md: the AI did not run this package.
+Do not run any code and do not write a run log. Use the manuscript and the outputs already in
+package/{id}/ (and report/{id}/completeness_check.md if it exists). Compare every exhibit in the
+manuscript with those outputs. For every exhibit that does not reproduce, make the Code / Paper
+comparison images in report/{id}/graphics/ as the skill's "Making the comparison screenshots"
+section describes, and show them side by side in the report. Fill what only a run can tell
+(changes made, number of runs, stability, runtime, system specifications) from files in the
+package or report/{id}/evidence/ if they state it; otherwise leave the "[TO FILL: ...]" markers
+the skill gives. Never estimate them.
+Write the report in the formats the skill asks for and export the PDF to report/{id}/reproducibility_report_{id}.pdf as the skill describes,
+then check its layout once as the skill describes. If any exhibit does not reproduce, draft the email
+that sends the report to the authors as report/{id}/emails/3_report_to_authors.md.
+Do not change anything in package/{id}/."""
 
 
 def prerequisites(n, args):
@@ -315,8 +336,12 @@ def prerequisites(n, args):
             if missing:
                 need.append(f"{', '.join(missing)} not in package/{args.id}/. Run the package on the "
                             "secure machine, then private_bundle.py postrun.")
-    if n == 3 and not (rep / "run_log.md").is_file():
-        need.append(f"report/{args.id}/run_log.md is missing. Run step 2 first.")
+    if n == 3 and not (rep / "run_log.md").is_file() and not args.outputs_only:
+        need.append(f"report/{args.id}/run_log.md is missing. Run step 2 first. If you ran the package "
+                    f"yourself and its outputs are in package/{args.id}/, add --outputs-only to write the "
+                    "report from those outputs and the manuscript.")
+    if n == 3 and args.outputs_only and not (pkg.is_dir() and any(pkg.iterdir())):
+        need.append(f"package/{args.id}/ is missing or empty. Put the manuscript and the outputs there.")
     if n == 4:
         exh = ai_summary.exhibit_counts(rep, args.id)
         if not exh or not exh["total"]:
@@ -396,6 +421,8 @@ def run_step(n, args, outdir):
     ctx = dict(id=args.id, title=args.title, software=args.software, reviewer=args.reviewer,
                data=args.data, n=n, date=f"{datetime.now():%Y-%m-%d}")
     task = PRIVATE_STEP2 if (args.private and n == 2) else STEP_TASKS[n]
+    if n == 3 and args.outputs_only and not (REPO / "report" / args.id / "run_log.md").is_file():
+        task = OUTPUTS_ONLY_STEP3
     prompt = task.format(**ctx) + "\n" + HEADLESS_RULES.format(**ctx)
     transcript = outdir / f"step{n}_{skill}.jsonl"
     cmd = ["claude", "-p", prompt, "--output-format", "stream-json", "--verbose",
@@ -539,8 +566,11 @@ def main():
                     help="Show where the review stands and what to do next. Runs nothing")
     ap.add_argument("--private", action="store_true",
                     help="Private path: work from the bundle that private_bundle.py built; never run the code")
+    ap.add_argument("--outputs-only", action="store_true",
+                    help="Step 3 without a run log: you ran the package yourself; write the report from the "
+                         "outputs in package/[ID]/ and the manuscript. With no --steps, runs step 3 only")
     ap.add_argument("--data", help="One line on the data (default depends on --private)")
-    ap.add_argument("--steps", default="1-5", help="e.g. 1-5, 2, 3-5, or next (from the first unfinished step)")
+    ap.add_argument("--steps", help="e.g. 1-5, 2, 3-5, or next (from the first unfinished step)")
     ap.add_argument("--model", help="e.g. claude-sonnet-5-5 (default: your Claude Code default)")
     ap.add_argument("--max-budget", type=float, help="Stop a step if it would spend more than this (USD)")
     ap.add_argument("--timeout-min", type=float,
@@ -549,6 +579,8 @@ def main():
     ap.add_argument("--keep-going", action="store_true",
                     help="Continue after a step the agent blocked or that failed (never past a package that does not reproduce)")
     args = ap.parse_args()
+    if not args.steps:
+        args.steps = "3" if args.outputs_only else "1-5"
     if not (args.id or args.package):
         ap.error("give the package ID, e.g. headless_review.py RR_WLD_2026_806 (or just 806)")
     args.id = resolve_id(args.id or args.package)
@@ -578,7 +610,7 @@ def main():
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "run_info.json").write_text(json.dumps({
         "id": args.id, "title": args.title, "reviewer": args.reviewer, "software": args.software,
-        "private": args.private, "steps": args.steps, "date": f"{datetime.now():%Y-%m-%d}"}, indent=2), encoding="utf-8")
+        "private": args.private, "outputs_only": args.outputs_only, "steps": args.steps, "date": f"{datetime.now():%Y-%m-%d}"}, indent=2), encoding="utf-8")
 
     failed = False
     for n in steps:

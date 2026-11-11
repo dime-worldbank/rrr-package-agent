@@ -3,7 +3,8 @@ name: create-report
 description: >
   Run this skill for step 3 of a PRWP reproducibility review — after running the package.
   Triggers when a reviewer says "create the report", "write the report", "draft the report",
-  "step 3", "generate the verification report", "fill in the report", or "document the exhibits".
+  "step 3", "generate the verification report", "fill in the report", "document the exhibits",
+  or "report from the outputs only" (works without a run log, from the outputs and the manuscript).
   Collects all needed information (exhibits, title, date, runtime, system specs, data handling)
   and generates the reproducibility report in two formats: Markdown (.md, the working
   version) and LaTeX (.tex, from assets/report_template.tex).
@@ -25,10 +26,36 @@ Both files must have the same sections, wording and exhibit statuses.
 
 ---
 
+## Without a run log (report from the outputs and the manuscript)
+
+Skill 2 is not required. When there is no `report/[PACKAGE_ID]/run_log.md` (the reviewer ran
+the package themselves, or only wants the exhibit comparison), write the report from the
+manuscript and the outputs already in `package/[PACKAGE_ID]/`. Do not run the code and do
+not write a run log.
+
+- The **exhibit list** is built exactly as below: every exhibit in the manuscript against
+  the output files, with comparison images for the ones that do not reproduce.
+- The outputs must come from a run by the reviewer, not the copies the authors shipped.
+  In the chat, ask once. If `report/[PACKAGE_ID]/evidence/package.git` exists, check it:
+  outputs unchanged since the `initial-package` tag are the authors' own, so say so and
+  tell the reviewer the comparison does not show the code reproduces them.
+- **What only a run can tell** (sections 3, 4 and 5: changes made, number of runs,
+  stability, runtime, system specifications): take it from the reviewer's notes, logs in
+  the package or `report/[PACKAGE_ID]/evidence/` when they state it. In the chat, ask the
+  reviewer once for the rest, in one message. Never estimate it. Whatever is still unknown
+  stays in the report as a visible marker, the same in the .md and the .tex, e.g.
+  `[TO FILL: runtime]`, `[TO FILL: changes made to run the code]`, `[TO FILL: OS]`.
+- Data handling and the summary lines (sections 6 and 7) come from the README and
+  `completeness_check.md` if it exists.
+- When done, list the `[TO FILL: ...]` markers for the reviewer. The report is not final
+  and must not be sent or published until none is left.
+
+---
+
 ## Information to collect before generating the report
 
 Work through these questions with the reviewer. Many answers come from the Run Log
-produced in Skill 2.
+produced in Skill 2; if there is none, see **Without a run log** above.
 
 ### 1. Basic Info
 - **Package ID** (e.g. `RR_KEN_2026_585`)

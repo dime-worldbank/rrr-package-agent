@@ -104,7 +104,7 @@ shows the state of each step and what you have to check or send, without running
 python scripts/headless_review.py 806 --steps next
 ```
 
-resumes from the first unfinished step. `--steps 3` runs one step and `--steps 3-5` a range. You can also ask for any of these in the chat ("run 806 headless", "where is 806?"): the agent starts the same command.
+resumes from the first unfinished step. `--steps 3` runs one step and `--steps 3-5` a range. `--outputs-only` writes the report (step 3) without a run log, from the manuscript and the outputs of a run you made yourself; what only the run can tell (changes, runtime, stability, system specifications) stays in the report as `[TO FILL: ...]` unless your notes state it. You can also ask for any of these in the chat ("run 806 headless", "where is 806?"): the agent starts the same command.
 
 ### Measuring token usage (Claude Code)
 

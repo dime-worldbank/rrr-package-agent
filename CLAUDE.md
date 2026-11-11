@@ -61,7 +61,9 @@ python scripts/headless_review.py [ID] --status
 
 - **One skill in the chat** ("step 3 for 806", "PII check on 811"): run `--status`, then do that
   skill only. Do not redo or re-check earlier steps whose outputs exist; if an output the skill
-  needs is missing, say which one and stop.
+  needs is missing, say which one and stop. Exception: the report (step 3) does not need the
+  run log. Without it, follow the skill's "Without a run log" section (headless:
+  `python scripts/headless_review.py [ID] --outputs-only`).
 - **The whole review, or the rest of it, without supervision** ("run it headless", "run all the
   steps", "run the rest", "do the whole review"): do not work through the skills in this chat.
   Start the headless runner as a background command and tell the reviewer it is running:

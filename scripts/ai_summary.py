@@ -239,6 +239,10 @@ def collect(pkg_id, root, title=None, reviewer=None, mode=None, sessions=None, w
             state[n] = "Partly done: missing " + ", ".join(f"`{f}`" for f in outputs[n] if f not in have)
         else:
             state[n] = "Not run"
+    # Report made from the outputs already in the package (headless_review.py --outputs-only)
+    outputs_only = bool(info.get("outputs_only")) and state[2] == "Not run"
+    if outputs_only:
+        state[2] = "Skipped (report from outputs only)"
 
     # One short line per stage, for the checklist
     if comp:
@@ -254,6 +258,8 @@ def collect(pkg_id, root, title=None, reviewer=None, mode=None, sessions=None, w
             did[2] += f"; {' and '.join(differ)} output(s) differ between runs" if differ else "; outputs identical between runs"
     elif (rep / "run_log.md").is_file():
         did[2] = "run log written, but no measured run evidence"
+    elif outputs_only:
+        did[2] = "the AI did not run the code; the report uses the outputs already in the package"
     if exh:
         c = exh["counts"]
         good = c["Reproduced"] + c["Values reproduced"] + c["Reproduced (manual changes)"]
@@ -336,7 +342,7 @@ def collect(pkg_id, root, title=None, reviewer=None, mode=None, sessions=None, w
           "- My estimate without AI: "]
 
     returned = bool(comp and comp["verdict"] == "RETURN TO AUTHORS")
-    todo = [n for n, _, _ in SKILLS if state[n] != "Completed"]
+    todo = [n for n, _, _ in SKILLS if state[n] != "Completed" and not state[n].startswith("Skipped")]
     return {"lines": L, "pending": pending, "state": state, "did": did, "status": status,
             "title": title, "reviewer": reviewer, "private": private,
             "returned": returned, "not_repro": not_repro,
