@@ -22,6 +22,11 @@ Produces, in `report/[PACKAGE_ID]/`:
 - `verification_report_[PACKAGE_ID].tex` — the same content filled into the LaTeX
   template, for Overleaf or local compilation (kept for now, alongside the .md)
 
+And in `report/[PACKAGE_ID]/evidence/`:
+- `exhibit_comparison.csv` — one row per exhibit: where it is in the manuscript, which output
+  it was compared with, how, and what was found (see **Record every comparison** below). It is
+  how the reviewer checks the comparison itself, not only its result.
+
 Both files must have the same sections, wording and exhibit statuses.
 
 ---
@@ -34,7 +39,8 @@ manuscript and the outputs already in `package/[PACKAGE_ID]/`. Do not run the co
 not write a run log.
 
 - The **exhibit list** is built exactly as below: every exhibit in the manuscript against
-  the output files, with comparison images for the ones that do not reproduce.
+  the output files, with comparison images for the ones that do not reproduce, and one row
+  per exhibit in `evidence/exhibit_comparison.csv`.
 - The outputs must come from a run by the reviewer, not the copies the authors shipped.
   In the chat, ask once. If `report/[PACKAGE_ID]/evidence/package.git` exists, check it:
   outputs unchanged since the `initial-package` tag are the authors' own, so say so and
@@ -181,6 +187,34 @@ If the appendix has more than 10 exhibits, note which 10 were randomly selected
 | Cannot verify | `\textcolor{BurntOrange}{Could not be verified.}` | Output not found or cannot be traced to code |
 | Does not reproduce | `\textcolor{Red}{Does not reproduce.}` | Values differ; always explain the difference |
 | Does not apply | `\textcolor{Gray}{Does not apply.}` | Not an analytical output (e.g. variable definitions table) |
+
+### Record every comparison
+
+Write `report/[PACKAGE_ID]/evidence/exhibit_comparison.csv` as you go, one row per exhibit
+you reviewed (the same exhibits, names and statuses as the report), so the reviewer can
+check how each status was reached without reading the session. Columns:
+
+| Column | What goes in it |
+|--------|-----------------|
+| `exhibit` | As in the report, e.g. `Table 2`, `Figure A3` |
+| `section` | `main` or `appendix` |
+| `manuscript_page` | PDF page number where the exhibit body is (the page you read, not the printed number) |
+| `output_file` | Path of the output compared, relative to `package/[PACKAGE_ID]/`; several separated by `;`; empty if none was found |
+| `method` | `values` (numbers read from the output and the paper), `checksum` (image file against the authors' original), `visual` (image opened and compared by eye), `none` (no output found) |
+| `compared` | What was compared, e.g. `all 36 coefficients and 36 SEs`, `N and R2 in 4 columns`, `the 2 series behind the plot`, `whole image` |
+| `differences` | `none`, or the cells that differ as `cell: paper vs code` (e.g. `col 3 educ: 0.124 vs 0.131`), at most five, then `+N more` |
+| `max_abs_diff` | Largest absolute difference after rounding the code value to the paper's decimals; `0` when all match; empty for `checksum`/`visual`/`none` |
+| `status` | The report's status, word for word (e.g. `Reproduced`, `Does not reproduce`) |
+| `note` | Anything the status depends on: rows not checked, a manual step, why it could not be verified, the appendix sample seed |
+
+Rules:
+- One row per exhibit in the report, no more, no fewer. Exhibits outside the appendix sample
+  get no row.
+- Fill it from what you actually read. If you compared only part of an exhibit (e.g. only the
+  first panel), `compared` says so; never write `all` when it was not all.
+- A status of `Reproduced` with method `visual` needs a `note` saying why no values were checked.
+- Quote values in `differences` with `"` when they contain commas. Write it with Python's
+  `csv` module.
 
 **Format for each exhibit:**
 ```latex
@@ -341,6 +375,8 @@ ameref` in the .tex): put an explicit anchor
 | Does not apply. | Gray | `#949698` |
 
 - Exhibits are bullet lists (as in the .tex), not tables.
+- Keep the **Use of AI** bullet word for word in every report, in both the .md and the .tex. Only two things change: the model in brackets (the model(s) that did this review, e.g. `Opus 5.5`, from the run's usage files or your own model name), and a task the AI did not do is dropped from the list (e.g. on the private path the AI does not run the code).
+  Only the reviewer may change it (see `docs/ai_review_workflow.md`).
 - For "does not reproduce" comparisons, show Code and Paper screenshots side by side
   with an HTML `<table>` of two `<img>` cells (images in `graphics/`).
 
@@ -418,6 +454,7 @@ Paper exhibits were reproduced on a computer with the following specifications:
 - Processor: [Processor]
 - Memory available: [Memory]
 - Software version: [Software]
+- **Use of AI**: This review was assisted by AI (Claude Code: [model, e.g. Opus 5.5]), for checking the package for completeness, running and debugging the code, comparing outputs with the manuscript, and drafting this report. The verification team reviewed this work and remains accountable for this report, including any errors in it.
 ```
 
 **Export the .md to PDF** (run it yourself, don't ask the reviewer to print from the preview):
@@ -437,6 +474,8 @@ one time each.
 
 ## Done with Skill 3?
 
+- Check that `evidence/exhibit_comparison.csv` has one row per exhibit in the report, with
+  the same names and statuses
 - Save the compiled PDF as `reproducibility_report_[PACKAGE_ID].pdf`
 - If the package **did not reproduce**: draft the email that sends the report to the authors as
   `report/[PACKAGE_ID]/emails/3_report_to_authors.md`, for the reviewer to send now, from this

@@ -88,7 +88,8 @@ final summary find them: `completeness_check.md`, `run_log.md`, `verification_re
 `reproducibility_report_[ID].pdf`, `[ID].zip`, `[ID]_merge.json`,
 `prepublication_review_[ID].md`. Every draft email goes in `report/[ID]/emails/`, numbered in
 sending order: `1_missing_items.md`, `2_run_confirmation.md`, `3_report_to_authors.md`,
-`4_final_published.md`, `5_pii_fix.md`.
+`4_final_published.md`, `5_pii_fix.md`. The suggested README for a package without one goes next to
+email 1, as `1_suggested_README.md`.
 
 Keep the top level of `report/[ID]/` to those files. Do not add step logs or "what was done"
 files. Assumptions and anything you could not check go in `report/[ID]/evidence/assumptions.md`
@@ -117,14 +118,18 @@ python scripts/ai_summary.py --id [ID] --mode chat --title "[title]" --reviewer 
 ```
 
 `headless_review.py` does this itself. It writes `report/[ID]/ai_use_summary.md`: a short block with
-the AI cost, a reviewer checklist (AI changes, then one line per stage), comments and the time
-with and without AI. Tell the reviewer
-to check it, fill it in and **paste it into the GitHub issue**. Never tick its boxes, fill in
-its time fields or say the reviewer verified something.
+the AI cost, an *AI vs. me* table (AI changes, then one row per stage: checked, match, what the
+AI got wrong), the time with and without AI, and comments. Tell the
+reviewer to check it, fill it in and **paste it into the GitHub issue**. Never fill in the table,
+fill in its time fields or say the reviewer verified something. The reviewer's checks at each step are in `docs/ai_review_workflow.md`. Every report keeps the
+*Use of AI* bullet from the template word for word.
 
 ## Key rules
 
 - Never skip steps — each skill must complete before the next begins
+- A package with no README file cannot be run: Skill 1 ends in RETURN TO AUTHORS, with a suggested
+  README for the authors (`emails/1_suggested_README.md`, from the template in
+  `completeness-check/assets/`), and Skill 2 does not start until the resubmission has a README
 - If the package does not reproduce, stop after Skill 3: the report goes to the authors and
   Skills 4 and 5 wait for a resubmission that reproduces
 - Document everything in the GitHub issue as you go

@@ -12,3 +12,5 @@
 /package
 /.cc-history
 /report
+stata.log
+docs/.Rhistory

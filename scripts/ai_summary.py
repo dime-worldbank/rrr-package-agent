@@ -3,9 +3,11 @@
 AI use summary
 --------------
 Writes report/[ID]/ai_use_summary.md: a short block of GitHub-flavored Markdown the
-reviewer pastes into the package's GitHub issue. A header line, the AI cost, a checklist
-(AI changes, then one line per stage with what the AI found), comments (open items found
-in the files, plus the reviewer's own) and the time with and without AI.
+reviewer pastes into the package's GitHub issue. A header line, the AI cost, an "AI vs. me"
+table (AI changes, then one row per stage with what the AI found, for the reviewer to mark
+as checked / matching and say what the AI got wrong; steps 1, 2 and 4 are y/n, the report
+is counted per exhibit; used to benchmark the AI before full
+automation), the time with and without AI and comments (open items found in the files).
 
     python scripts/ai_summary.py --id RR_WLD_2026_806                      # after a headless run
     python scripts/ai_summary.py --id RR_WLD_2026_806 --mode chat \
@@ -16,9 +18,10 @@ steps already wrote in report/[ID]/ (outputs, headless/, chat/, evidence/); noth
 re-run and no AI is called. The script never ticks a box, never fills in the manual time
 and never says the reviewer verified anything.
 
-Cost is an estimate at API list price: from token_usage.csv for headless runs, and from
-chat_usage.py for chat reviews (run automatically if report/[ID]/chat/token_usage.csv is
-not there yet; pass --session to pick the chats).
+Cost is an estimate at API list price, summed over every attempt: token_usage.csv for
+headless runs (every attempt is kept), plus chat_usage.py for every chat that mentions the
+package ID (re-read each time; pass --session to pick the chats). Re-running this script
+after a resubmission therefore gives the cost of the whole review so far.
 """
 import argparse
 import csv
@@ -143,9 +146,28 @@ def prepub(rep, pkg_id):
             "full_json": (rep / f"{pkg_id}.json").is_file() or any((rep / d / f"{pkg_id}.json").is_file() for d in ("prepub", "evidence/prepub"))}
 
 
-def usage(rep, mode, pkg_id, sessions):
-    """Per step: cost, minutes, tokens, model. Returns (by_step, earlier_cost, source)."""
+def refresh_chat_usage(rep, pkg_id, sessions):
+    """Rewrite chat/token_usage.csv from every chat that mentions the package, so the cost
+    keeps growing with each new chat (resubmissions included). Headless runs are not counted."""
+    src = rep / "chat" / "token_usage.csv"
+    try:  # same folder as this script
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import chat_usage
+        found = chat_usage.find_sessions(pkg_id, set(sessions or []))
+        if found:
+            src.parent.mkdir(parents=True, exist_ok=True)
+            chat_usage.write_usage(src.parent, [r for p, _ in found for r in chat_usage.usage_rows(p)], found)
+    except Exception as e:  # the summary is still useful without the cost table
+        print(f"  ! chat_usage.py could not be run: {e}")
+    return src
+
+
+def usage(rep, mode, pkg_id, sessions, scan=True):
+    """Per step: cost, minutes, tokens, model. Returns (by_step, earlier_cost, source).
+    The total cost covers every attempt: in headless mode, earlier attempts at a step and any
+    chats about the package go into earlier_cost."""
     by_step, earlier = {}, 0.0
+    chat_src = refresh_chat_usage(rep, pkg_id, sessions) if scan else rep / "chat" / "token_usage.csv"
     if mode == "headless":
         src = rep / "headless" / "token_usage.csv"
         for r in rows(src):  # rows are in attempt order; the last one per step is the latest
@@ -155,19 +177,9 @@ def usage(rep, mode, pkg_id, sessions):
             by_step[n] = {"cost": num(r, "cost_usd"), "minutes": num(r, "minutes"), "tokens": num(r, "total_tokens"),
                           "calls": num(r, "turns"), "model": r.get("model", ""), "status": r.get("status") or "ok",
                           "denied": int(num(r, "denied_tools"))}
+        earlier += sum(num(r, "cost_usd") for r in rows(chat_src))
         return by_step, earlier, "headless/token_usage.csv"
-    src = rep / "chat" / "token_usage.csv"
-    if not src.is_file() or sessions:
-        try:  # same folder as this script
-            sys.path.insert(0, str(Path(__file__).resolve().parent))
-            import chat_usage
-            found = chat_usage.find_sessions(pkg_id, set(sessions or []))
-            if found:
-                src.parent.mkdir(parents=True, exist_ok=True)
-                chat_usage.write_usage(src.parent, [r for p, _ in found for r in chat_usage.usage_rows(p)], found)
-        except Exception as e:  # the summary is still useful without the cost table
-            print(f"  ! chat_usage.py could not be run: {e}")
-    for r in rows(src):
+    for r in rows(chat_src):
         n = int(num(r, "step"))
         s = by_step.setdefault(n, {"cost": 0, "minutes": 0, "tokens": 0, "calls": 0, "model": "", "status": "ok", "denied": 0})
         s["cost"] += num(r, "cost_usd")
@@ -199,7 +211,7 @@ def collect(pkg_id, root, title=None, reviewer=None, mode=None, sessions=None, w
     private = bool(info.get("private")) or (pkg / "hash_comparison.csv").is_file()
     comp, exh, pre = completeness(rep), exhibit_counts(rep, pkg_id), prepub(rep, pkg_id)
     if with_usage or mode == "headless":
-        use, earlier, use_src = usage(rep, mode, pkg_id, sessions)
+        use, earlier, use_src = usage(rep, mode, pkg_id, sessions, scan=with_usage)
     else:
         use, earlier = {}, 0.0
     times = [r for r in rows(ev / "run_times.csv")]
@@ -292,6 +304,14 @@ def collect(pkg_id, root, title=None, reviewer=None, mode=None, sessions=None, w
         pending.append("Does not reproduce: send the report to the authors. Steps 4 and 5 wait for the resubmission.")
     if exh and not (rep / f"reproducibility_report_{pkg_id}.pdf").is_file():
         pending.append("The report PDF is missing.")
+    if exh:
+        xc = ev / "exhibit_comparison.csv"
+        if not xc.is_file():
+            pending.append("`evidence/exhibit_comparison.csv` is missing: the exhibit statuses cannot be traced to a comparison.")
+        else:
+            xrows = [r for r in rows(xc) if (r.get("exhibit") or "").strip()]
+            if len(xrows) != exh["total"]:
+                pending.append(f"`evidence/exhibit_comparison.csv` has {len(xrows)} row(s) for {exh['total']} exhibit(s) in the report.")
     if zc.get("mismatches"):
         pending.append("The ZIP does not match the last commit: rebuild it.")
     if zc.get("missing"):
@@ -326,20 +346,33 @@ def collect(pkg_id, root, title=None, reviewer=None, mode=None, sessions=None, w
          f"*{title}* · Reviewer: {reviewer} · {date.today().isoformat()} · {mode}"
          f"{' (private data)' if private else ''} · {', '.join(models) or FILL}", "",
          f"**Status:** {status}. **AI cost:** " + (f"${cost:.2f}, an estimate at API list price." if use else "no usage data found."),
-         "", "### Reviewer checklist", "",
-         "- [ ] I reviewed the AI's changes to the package (`evidence/AI_CHANGES.md`"
-         + (f": {n_code} code change(s), {n_flag} flagged" if n_code is not None else ": not generated yet") + ")"]
-    for n, _, label in SKILLS:
+         "", "### AI vs. me", "",
+         "Fill in *Checked* and *Match* (`y`/`n`; counts for the AI changes and the report) and say "
+         "what the AI got wrong, if anything.", "",
+         "| Stage | AI result | Checked | Match | What the AI got wrong |",
+         "|---|---|---|---|---|"]
+    cell = lambda s: one_line(s.replace("|", "/"), 160)
+    if n_code is not None:
+        L.append(f"| AI changes | {n_code} code change(s), {n_flag} flagged | _ / {n_code} | _ / {n_code} | |")
+    else:
+        L.append("| AI changes | `AI_CHANGES.md` not generated | | | |")
+    for n, _, label in SKILLS[:4]:  # step 5 is not re-checked by the reviewer
         note = did.get(n, "")
         if state[n] != "Completed":  # the reason is under Comments
             note = (note + "; " if note else "") + state[n].split(":")[0].split(" (")[0].lower()
-        L.append(f"- [ ] **{label}:** {note}")
-    L += ["", "### Comments", ""]
+        if not_repro and n >= 4:
+            L.append(f"| {n} {label} | waits for a resubmission | — | — | |")
+        elif state[n] == "Not run" or state[n].startswith("Skipped"):
+            L.append(f"| {n} {label} | {cell(note)} | — | — | |")
+        elif n == 3 and exh:
+            L.append(f"| {n} {label} | {cell(note)} | _ / {exh['total']} | _ / _ | |")
+        else:
+            L.append(f"| {n} {label} | {cell(note)} | | y / n | |")
+    L += ["", "**Would the AI's outputs have gone out unchanged?** y / n",
+          "", f"**Time:** AI {ai_min:.0f} min · me with AI ___ min · my estimate without AI ___ min"
+          if use else "**Time:** AI ___ min · me with AI ___ min · my estimate without AI ___ min",
+          "", "### Comments", ""]
     L += [f"- {x}" for x in pending] + ["- "]
-    L += ["", "### Time", "",
-          f"- AI ran for: {ai_min:.0f} min" if use else "- AI ran for: ",
-          "- My time with AI, including checking: ",
-          "- My estimate without AI: "]
 
     returned = bool(comp and comp["verdict"] == "RETURN TO AUTHORS")
     todo = [n for n, _, _ in SKILLS if state[n] != "Completed" and not state[n].startswith("Skipped")]

@@ -18,6 +18,7 @@ reproducibility package. Produces:
 1. A filled checklist with pass/fail for each item
 2. A flagged list of issues (missing elements, data concerns)
 3. A draft author email if anything is missing
+4. A suggested README for the authors to complete, if the package has no README file
 
 ---
 
@@ -71,7 +72,29 @@ Check each item. Mark ✅ PRESENT or ❌ MISSING.
 - **If missing**: Flag for confirmation of manuscript receipt by reviewer - manuscript may have been processed elsewhere
 
 ### A2. README file
-Check the README covers ALL of the following. Each sub-item can be ✅ or ❌:
+
+**First: is there a README file at all?** A README is a file named `README` (any extension:
+`.md`, `.txt`, `.pdf`, `.docx`) in the package. A workflow note, methodology note, code comments
+or a description in the submission email is **not** a README, even if it says how to run the code.
+
+**No README file → hard blocker. The verdict is RETURN TO AUTHORS and the package is not run.**
+Finish the rest of this checklist so that the authors get every missing item in one email, then:
+
+1. Mark the README line `❌ README: Missing` and list "No README" first among the hard blockers
+   in the verdict.
+2. Write a suggested README for the authors as `report/[PACKAGE_ID]/emails/1_suggested_README.md`.
+   Start from `assets/README_template.md` (in this skill folder): keep its sections and field
+   names, and replace the guidance text and examples with what the package files show (paper
+   title, folders, scripts and what each one reads and writes, data files, R/Python packages
+   loaded, exhibit names and titles from the manuscript, one row per exhibit). Mark everything
+   the files cannot tell you as `[TO FILL: what is needed]`: software versions, access dates,
+   URLs, licenses, citations, run time, the rights statement and data availability boxes. Never
+   fill these from your own environment or from a guess. Put a comment at the top saying it is a
+   draft by the reproducibility team for the authors to complete and check.
+3. In the author email, say the README is missing, that the code will be run once the package
+   has one, and that a suggested README is attached for them to complete.
+
+If there is a README file, check that it covers ALL of the following. Each sub-item can be ✅ or ❌:
 
 - [ ] **Software and version** (e.g., "Stata 18.0 MP", "R 4.3.1", "Python 3.11"); not a blocker since replicator will run it in their own environment, but important for troubleshooting
 - [ ] **How to run** — which file to execute first, order of scripts if no main file
@@ -79,6 +102,7 @@ Check the README covers ALL of the following. Each sub-item can be ✅ or ❌:
 - [ ] **Output mapping** — table/figure → script that generates it (or reference to a linkage table)
 - [ ] **Data Availability Statement** (can be in README or separate file) — see Section B
 
+No README file → **return to authors** (see above); do not move to Skill 2.
 A README with none of these AND no data info → **return to authors immediately**.
 A README missing some items → note issues, proceed with review, include in author email.
 
@@ -258,7 +282,8 @@ NOTES FOR GITHUB ISSUE
   [paste any notes here]
 ```
 
-Mark exactly one verdict with `[x]` and leave the other `[ ]`, on these two lines as written:
+A package with no README file is always RETURN TO AUTHORS, with "No README" as the first hard
+blocker. Mark exactly one verdict with `[x]` and leave the other `[ ]`, on these two lines as written:
 the next step and `headless_review.py --status` read the verdict from them.
 
 ---
@@ -276,6 +301,15 @@ Dear [Author Name],
 Thank you for submitting your reproducibility package for "[Paper Title]."
 Upon initial review, we found some items that need to be addressed before
 we can proceed with verification.
+```
+
+**For a package with no README file:**
+```
+The package does not include a README file. We cannot run the code until the
+package has one. To help, we attach a suggested README that follows our template
+and is already filled in with what we could see in the package. Please complete
+every "[TO FILL]" item, check the rest, and save it as README.md in the top
+folder of the package.
 ```
 
 **For missing README / data statement:**

@@ -16,6 +16,7 @@ never holds a .git folder and nothing has to be deleted before zipping.
     python $S commit  --id ID --label step4-license      # one commit per step 4 action
     python $S zip     --id ID --exclude "Reproducibility package/Data/Restricted"
     python $S changes --id ID                            # writes AI_CHANGES.md
+    python $S tidy    --id ID [--delete]                 # list / delete working files in evidence/
 
 Written to report/[ID]/evidence/:
     package.git/          Git history of package/[ID]/ (local only, never pushed or shipped)
@@ -618,6 +619,40 @@ def cmd_zip(a):
     return 1 if mismatches else 0
 
 
+# ── tidy ────────────────────────────────────────────────────────────────────────────────
+
+# What stays in evidence/ for the record. Everything else there is a working file.
+KEEP_EVIDENCE = {"package.git", "AI_CHANGES.md", "assumptions.md", "run_times.csv",
+                 "run_comparison.csv", "exhibit_comparison.csv", "zip_manifest.csv",
+                 "zip_check.json", "prepub", "ai_changes.json"}
+KEEP_EVIDENCE_RE = re.compile(r"^run\d+_(hashes\.csv|.+\.log)$")
+
+
+def size_of(p):
+    if p.is_file():
+        return p.stat().st_size
+    return sum(f.stat().st_size for f in p.rglob("*") if f.is_file())
+
+
+def cmd_tidy(a):
+    root = Path(a.root).resolve()
+    ev = root / "report" / a.id / "evidence"
+    if not ev.is_dir():
+        sys.exit(f"ERROR: no evidence folder: {ev}")
+    drop = sorted(p for p in ev.iterdir() if p.name not in KEEP_EVIDENCE and not KEEP_EVIDENCE_RE.match(p.name))
+    keep = sorted(p.name + ("/" if p.is_dir() else "") for p in ev.iterdir() if p not in drop)
+    print(f"Keep in report/{a.id}/evidence/: " + ", ".join(keep))
+    if not drop:
+        print("Nothing to delete.")
+        return 0
+    print(("Deleting" if a.delete else "Would delete (re-run with --delete)") + ":")
+    for p in drop:
+        print(f"  {p.name}{'/' if p.is_dir() else ''}  ({size_of(p) / 1e6:.1f} MB)")
+        if a.delete:
+            shutil.rmtree(p) if p.is_dir() else p.unlink()
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="Track what changes in package/[ID]/ during a review.")
     sub = ap.add_subparsers(dest="mode", required=True)
@@ -648,6 +683,8 @@ def main():
     p.add_argument("--exclude", action="append", help="File or folder to leave out, relative to the package (repeatable)")
     p.add_argument("--folder", default=ZIP_FOLDER, help=f'Code/data folder inside the package (default: "{ZIP_FOLDER}")')
     p.add_argument("--allow-missing", action="store_true", help="Build even if a required top-level file is missing")
+    p = add("tidy", cmd_tidy, "List (or with --delete, remove) the working files in evidence/ that are not kept for the record")
+    p.add_argument("--delete", action="store_true", help="Delete them (default: only list them)")
 
     a = ap.parse_args()
     return a.fn(a)

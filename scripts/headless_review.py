@@ -124,10 +124,12 @@ STEP_TASKS = {
     1: """Read .agents/skills/completeness-check/SKILL.md in full and follow it for package {id}.
 The submission is in package/{id}/. If it is a ZIP, extract it into package/{id}/ first and
 review the extracted files. Save the checklist as report/{id}/completeness_check.md and, if
-anything is missing, the draft author email as report/{id}/emails/1_missing_items.md.""",
+anything is missing, the draft author email as report/{id}/emails/1_missing_items.md.
+If the package has no README file, the verdict is RETURN TO AUTHORS: also write the suggested
+README as report/{id}/emails/1_suggested_README.md, as the skill's section A2 describes.""",
     2: """Read .agents/skills/run-package/SKILL.md in full and follow it for package {id}.
-Read report/{id}/completeness_check.md first. If its verdict is RETURN TO AUTHORS, write
-BLOCKED_step2.md and stop. Otherwise set up the environment and use track_package.py as the
+Read report/{id}/completeness_check.md first. If its verdict is RETURN TO AUTHORS, or the
+package has no README file, write BLOCKED_step2.md and stop. Otherwise set up the environment and use track_package.py as the
 skill describes: `init` for local Git, `run --n 1` and `run --n 2` for the two runs (it times
 them, saves the log and the SHA-256 manifest and commits), `commit` for each code fix on its
 own, and `compare` for stability. Do not run git init, time the runs or commit by hand. Take
@@ -136,7 +138,9 @@ Save the Run Log as report/{id}/run_log.md and the confirmation email draft as
 report/{id}/emails/2_run_confirmation.md.""",
     3: """Read .agents/skills/create-report/SKILL.md in full and follow it for package {id}.
 Use report/{id}/completeness_check.md and report/{id}/run_log.md. Compare every exhibit in
-the manuscript with the outputs from the run. For every exhibit that does not reproduce, make
+the manuscript with the outputs from the run, and record each comparison in
+report/{id}/evidence/exhibit_comparison.csv as the skill's "Record every comparison" section
+describes (one row per exhibit in the report). For every exhibit that does not reproduce, make
 the Code / Paper comparison images in report/{id}/graphics/ as the skill's "Making the
 comparison screenshots" section describes, and show them side by side in the report.
 Write the report in the formats the skill asks for and export the PDF to report/{id}/reproducibility_report_{id}.pdf as the skill describes,
@@ -169,8 +173,8 @@ PRIVATE_DATA = ("Private data. package/{id}/ holds only code, docs, data_hash_re
                 "system_info.txt and the outputs). Follow each skill's private-data section.")
 
 PRIVATE_STEP2 = """Read .agents/skills/run-package/SKILL.md in full and follow its private-data section for
-package {id}. Read report/{id}/completeness_check.md first. If its verdict is RETURN TO AUTHORS,
-write BLOCKED_step2.md and stop. Do not run the code: the data is not here. The reviewer ran the
+package {id}. Read report/{id}/completeness_check.md first. If its verdict is RETURN TO AUTHORS, or the
+package has no README file, write BLOCKED_step2.md and stop. Do not run the code: the data is not here. The reviewer ran the
 package twice on the secure machine and private_bundle.py postrun copied the results into
 package/{id}/. If hash_comparison.csv or system_info.txt is missing, write BLOCKED_step2.md
 saying the reviewer must run postrun, and stop. Otherwise write the Run Log from
@@ -304,7 +308,8 @@ OUTPUTS_ONLY_STEP3 = """Read .agents/skills/create-report/SKILL.md in full and f
 run log" for package {id}. There is no report/{id}/run_log.md: the AI did not run this package.
 Do not run any code and do not write a run log. Use the manuscript and the outputs already in
 package/{id}/ (and report/{id}/completeness_check.md if it exists). Compare every exhibit in the
-manuscript with those outputs. For every exhibit that does not reproduce, make the Code / Paper
+manuscript with those outputs, and record each comparison in report/{id}/evidence/exhibit_comparison.csv
+as the skill's "Record every comparison" section describes. For every exhibit that does not reproduce, make the Code / Paper
 comparison images in report/{id}/graphics/ as the skill's "Making the comparison screenshots"
 section describes, and show them side by side in the report. Fill what only a run can tell
 (changes made, number of runs, stability, runtime, system specifications) from files in the
@@ -314,6 +319,32 @@ Write the report in the formats the skill asks for and export the PDF to report/
 then check its layout once as the skill describes. If any exhibit does not reproduce, draft the email
 that sends the report to the authors as report/{id}/emails/3_report_to_authors.md.
 Do not change anything in package/{id}/."""
+
+
+SKIP_DIRS = {".git", "renv", "packrat", "ado", "node_modules", ".venv", "venv", "__pycache__"}
+
+
+def has_readme(pkg):
+    """True if a file with "readme" in its name is anywhere in package/[ID]/, also inside a ZIP
+    not yet extracted. Library folders are skipped: a README shipped with a dependency is not the
+    package's. This only catches a package with no README at all; whether a file is a real
+    README is for Skill 1 to judge."""
+    names = []
+    for path in pkg.rglob("*") if pkg.is_dir() else []:
+        if path.is_file():
+            names.append(path.relative_to(pkg).as_posix())
+            if path.suffix.lower() == ".zip":
+                try:
+                    import zipfile
+                    with zipfile.ZipFile(path) as z:
+                        names += z.namelist()
+                except Exception:
+                    pass
+    for name in names:
+        parts = name.rstrip("/").split("/")
+        if "readme" in parts[-1].lower() and not SKIP_DIRS.intersection(parts[:-1]):
+            return True
+    return False
 
 
 def prerequisites(n, args):
@@ -331,6 +362,10 @@ def prerequisites(n, args):
         elif comp["verdict"] == "RETURN TO AUTHORS":
             need.append("The completeness verdict is RETURN TO AUTHORS. Review and send the author "
                         "email, and run step 1 again on the resubmission.")
+        if not has_readme(pkg):
+            need.append(f"package/{args.id}/ has no README file, so the package cannot be run. Send the "
+                        "author email with the suggested README (emails/1_suggested_README.md), and run "
+                        "step 1 again on the resubmission.")
         if args.private:
             missing = [f for f in ("hash_comparison.csv", "system_info.txt") if not (pkg / f).is_file()]
             if missing:
