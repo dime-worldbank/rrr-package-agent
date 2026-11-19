@@ -373,6 +373,45 @@ guessing.
 
 
 ---
+## Step 6c — Tidy the evidence and save the report folder
+
+Once the ZIP is built and checked, remove the working files from `report/[PACKAGE_ID]/evidence/`
+so that the report folder is the full record of the review and nothing else:
+
+```bash
+python $S tidy --id [PACKAGE_ID]            # lists what stays and what would be deleted
+```
+
+Show the reviewer the list and ask before deleting. On their yes:
+
+```bash
+python $S tidy --id [PACKAGE_ID] --delete
+```
+
+**Headless, or whenever the reviewer cannot confirm: do not delete.** Run `tidy` without
+`--delete` and copy the list into `evidence/assumptions.md` under `## Step 4`.
+
+`tidy` keeps `package.git/`, `AI_CHANGES.md` (and `ai_changes.json`), `assumptions.md`, `run_times.csv`, the
+`runN_*.log` and `runN_hashes.csv` files, `run_comparison.csv`, `exhibit_comparison.csv`,
+`zip_manifest.csv`, `zip_check.json` and `prepub/`. Everything else in `evidence/` is a working
+file (install logs, `original_outputs/`, `nested_git/` with the authors' own Git history,
+console logs, ad hoc checks) and goes.
+
+Then tell the reviewer to **save the whole `report/[PACKAGE_ID]/` folder as it is to OneDrive**
+(after step 5, so the pre-publication review is in it). It holds everything the team keeps:
+
+- the published ZIP, `[PACKAGE_ID]_merge.json` and the report (`.pdf`, `.md`, `.tex`)
+- the completeness check, run log and pre-publication review
+- the emails as drafted and `ai_use_summary.md`
+- `evidence/`: every AI change with its diff (`package.git`, readable without the package
+  folder), proof of each run, the exhibit comparison and the ZIP check
+- `headless/` or `chat/`: AI cost and usage
+
+`package/[PACKAGE_ID]/` is not needed after that: the ZIP is the published package and
+`package.git` holds its history.
+
+
+---
 ## Step 7 — Send Final Email to Authors
 
 **Do this only after Skill 5 (pre-publication review) returns "Ready to go live"** and the package

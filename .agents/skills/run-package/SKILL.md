@@ -12,6 +12,11 @@ description: >
 
 # Skill 2 — Run Package
 
+> **Before anything else:** read `report/[PACKAGE_ID]/completeness_check.md`. If its verdict is
+> RETURN TO AUTHORS, or the package has no README file, do not set up the environment or run
+> any code: tell the reviewer the package goes back to the authors first (headless: write
+> `BLOCKED_step2.md` and stop).
+
 ## What this skill does
 Guides you through Steps 3–6 of the protocol:
 - Set up a clean programming environment

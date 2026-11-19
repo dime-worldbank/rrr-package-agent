@@ -7,6 +7,11 @@ An AI agent that helps the World Bank Reproducibility Verification Team review r
 
 The skills follow the open [Agent Skills](https://agentskills.io) standard, so they can be used with any agent that supports it.
 
+**Start here as a reviewer:**
+
+- [`docs/review_desk.html`](docs/review_desk.html): open it in a browser. It builds the commands for each step and lists what to check after each one.
+- [`docs/ai_review_workflow.md`](docs/ai_review_workflow.md): how to check the AI's work at each step, the *Use of AI* statement, the *AI vs. me* table in the AI use summary, which evidence to keep and how to read the Git history.
+
 ## Workflow
 
 The agent works through five skills, always in order. Each skill must finish before the next one starts.
@@ -124,6 +129,7 @@ Both ways of running a review can report tokens, cost and time per step, in the 
 Everything a reviewer needs to check the AI's work on a package is in `report/[PACKAGE_ID]/evidence/`, written by [`track_package.py`](.agents/skills/run-package/scripts/track_package.py):
 
 - **`AI_CHANGES.md`**: every file the AI added, edited or removed in the package, with the commit and `file:line`, and a warning on any change to a script that writes exhibits or to an output. Start here.
+- **`exhibit_comparison.csv`** (step 3): one row per exhibit with the manuscript page, the output file compared, how (values, checksum or by eye), what was compared, the cells that differ and the largest difference. Use it to check how each status in the report was reached.
 - **`package.git/`**: the local Git history of `package/[PACKAGE_ID]/` (`initial-package`, one commit per code fix, `first-run`, `second-run`, then one `step4-…` commit per publication action). The package folder only holds a `.git` pointer file, so these work as usual:
 
   ```bash
@@ -148,11 +154,13 @@ The last stage of every review writes `report/[PACKAGE_ID]/ai_use_summary.md`, o
 python scripts/ai_summary.py --id RR_WLD_2026_XXX --mode chat --title "Paper title" --reviewer "Your name"
 ```
 
-It is short: a header line, the package status and AI cost (an estimate at API list price; the per-step detail stays in `token_usage.md`), a reviewer checklist ("I reviewed the AI's changes", then one line per stage with what the AI found), comments (open items found in the files, plus your own) and the time with and without AI. The checklist boxes and the time fields are left empty: the reviewer ticks and fills them in after checking. The script calls no AI and never states that something was verified.
+It is short: a header line, the package status and AI cost (an estimate at API list price; the per-step detail stays in `token_usage.md`), an **AI vs. me** table (AI changes, then one row per stage with what the AI found; the reviewer marks what they checked, how many match, and what the AI got wrong; this is the benchmark before moving to fully automated reviews), the time with and without AI, and comments (open items found in the files). The table and time fields are left empty for the reviewer. The cost covers every attempt and every chat about the package, and the file is rewritten each time the script runs, so paste it into the GitHub issue once, at the end of the review. The script calls no AI and never states that something was verified.
+
+**[`docs/ai_review_workflow.md`](docs/ai_review_workflow.md)** sets out how a reviewer checks the AI's work at each step, the *Use of AI* statement every report carries, which evidence to keep, how to read the Git history (including in GitHub Desktop), and the *AI vs. me* table.
 
 ### Headless runs: what stops them
 
-`headless_review.py` checks before each step that the outputs of the step before exist. It stops, with exit code 1 and a `report/[PACKAGE_ID]/headless/BLOCKED_stepN.md` saying what to do, when a prerequisite is missing, the completeness verdict is RETURN TO AUTHORS, a step crashes, runs past `--timeout-min` (60 minutes unless you set it; step 2 has no limit while it runs the package's code) or `--max-budget`, or the package repo has a remote. **A package that does not reproduce always stops before step 4.** Fix the cause and resume with `--steps next`; earlier attempts are kept under time-stamped names and stay in `token_usage.csv`.
+`headless_review.py` checks before each step that the outputs of the step before exist. It stops, with exit code 1 and a `report/[PACKAGE_ID]/headless/BLOCKED_stepN.md` saying what to do, when a prerequisite is missing, the completeness verdict is RETURN TO AUTHORS, the package has no README file, a step crashes, runs past `--timeout-min` (60 minutes unless you set it; step 2 has no limit while it runs the package's code) or `--max-budget`, or the package repo has a remote. **A package that does not reproduce always stops before step 4.** Fix the cause and resume with `--steps next`; earlier attempts are kept under time-stamped names and stay in `token_usage.csv`.
 
 ## Ground rules
 
