@@ -53,6 +53,29 @@ from pathlib import Path
 import ai_summary  # same folder
 
 REPO = Path(__file__).resolve().parent.parent
+
+
+def find_claude():
+    """Path to the claude CLI: $CLAUDE_BIN, then PATH (finds claude.exe / claude.cmd on
+    Windows), then the newest copy bundled with the VS Code extension."""
+    import shutil
+    if os.environ.get("CLAUDE_BIN"):
+        return os.environ["CLAUDE_BIN"]
+    found = shutil.which("claude")
+    if found:
+        return found
+    exe = "claude.exe" if os.name == "nt" else "claude"
+    bundled = []
+    for ext_dir in (Path.home() / ".vscode" / "extensions",
+                    Path.home() / ".vscode-insiders" / "extensions",
+                    Path.home() / ".cursor" / "extensions"):
+        bundled += ext_dir.glob(f"anthropic.claude-code-*/resources/native-binary/{exe}")
+    if bundled:
+        return str(max(bundled, key=lambda p: p.stat().st_mtime))
+    sys.exit("Cannot find the claude CLI. Install it (https://claude.com/claude-code), "
+             "add it to PATH, or set CLAUDE_BIN to its full path.")
+
+
 TRACK = REPO / ".agents/skills/run-package/scripts/track_package.py"
 
 STEPS = {
@@ -460,7 +483,7 @@ def run_step(n, args, outdir):
         task = OUTPUTS_ONLY_STEP3
     prompt = task.format(**ctx) + "\n" + HEADLESS_RULES.format(**ctx)
     transcript = outdir / f"step{n}_{skill}.jsonl"
-    cmd = ["claude", "-p", prompt, "--output-format", "stream-json", "--verbose",
+    cmd = [find_claude(), "-p", prompt, "--output-format", "stream-json", "--verbose",
            "--strict-mcp-config", "--permission-mode", PERMISSION_MODE,
            "--allowedTools", *ALLOWED, "--disallowedTools", *DISALLOWED]
     if args.model:
